@@ -1,7 +1,7 @@
 # Thermal-Visible-face-videos-recorder-with-UI: 
 Thermal and Visible video recorder software, designed to work with up to 2 cameras - Infrared and visible.
 
-Run Main_V1_exported.m to start:  https://i.imgur.com/sT9h6Z4.png
+Run Main_V1.mlapp to start:  https://i.imgur.com/sT9h6Z4.png
 
 # Video analayzer for physiologicals signals extraction:
 Can be used for heart rate extraction, respiratory rate and other physiological parameters. 
