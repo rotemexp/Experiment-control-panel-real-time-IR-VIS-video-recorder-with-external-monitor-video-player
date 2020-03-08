@@ -127,7 +127,7 @@ t = uint64(zeros(1));
 t_seg = zeros(2,1);
 tStart = tic;
 
-if properties.playTime == 0 % case auto mode is on
+if properties.playTime == 0 && properties.playVideofiles == 1% case auto mode is on
     properties.play_mode = 0;
     properties.playTime = playlist(j).duration; % save length of first video
 else
