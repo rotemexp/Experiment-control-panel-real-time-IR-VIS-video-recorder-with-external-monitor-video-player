@@ -21,5 +21,5 @@ The video recorder fits OPTRIS IR camera's and specifically PI450 model.
 - Some of the VISanalysis function algorithm was inspired by the paper: Motion-resistant heart rate measurement from face videos using patch-based fusion
 https://www.researchgate.net/publication/330323577_Motion-resistant_heart_rate_measurement_from_face_videos_using_patch-based_fusion
 
-- Code written in MATLAB 2018b by Shaul Shvimmer, Electro-Optical engineering M.Sc student. saulsh@post.bgu.ac.il
+- Code written in MATLAB 2019b by Shaul Shvimmer, Electro-Optical engineering M.Sc student. saulsh@post.bgu.ac.il
 This code was written for reaserch purposes, if this work assists you please cite.
