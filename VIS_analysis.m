@@ -1,4 +1,4 @@
-function data = VIS_analysis(data, file2load, N, start_time, end_time, improve_img, crop_cor1, ROIcomparison, newFrameRate)
+function data = VIS_analysis(data, file2load, N, start_time, end_time, enhance_image, crop_cor1, ROIcomparison, newFrameRate)
 %% Load data
 tic
 disp ('[0] Loading VIS camera data...');
@@ -47,6 +47,10 @@ end
 
 if end_time == 0 % setting the end time in range
     end_time = (single(t(end,1)) / 1000);
+    
+    if end_time < 0.1
+        end_time = (single(t(1,end)) / 1000); % temporary fix for old files
+    end
 end
 
 frameStop = round(end_time*frame_rate); % defining the frame number to stop the calculation at
@@ -78,8 +82,8 @@ while (k <= (frameStop - frameStart + 1))% running on each frame of the video fi
     
     frame = im2double(img); % reads current frame from video
     
-    if improve_img == 1
-        frame = improve_img(frame); % calls image enhancement function
+    if enhance_image == 1
+        frame = img_enhancement(frame); % calls image enhancement function
     end
     
     if mod(k,skipper) == 0 % checks if this frame needs to be calculated according to the new frame rate

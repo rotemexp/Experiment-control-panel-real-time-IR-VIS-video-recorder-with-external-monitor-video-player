@@ -1,23 +1,37 @@
-function data = filterit(data, filter_type, cutoff_freq, median, sig1, sig2, sig3, sig4)
+function data = filterit(filter_type, cutoff_freq, median, data)
+
+if isfield(data,'IR_intens')
+    sig1 = double(data.IR_intens);
+end
+
+if isfield(data,'IR_intens2')
+    sig2 = double(data.IR_intens2);
+end
+
+if isfield(data,'IR_diff')
+    sig3 = double(data.IR_diff);
+end
+
+% need to add more cases for VIS analysis ###########################
 
 if strcmp(filter_type,'no') == 0 % case filter isn't 'no'
     
         [b, a] = butter(2, cutoff_freq./(data.frame_rate/2),filter_type); % create filter parameters
         
         if exist('sig1','var') == 1
-            data.sig1 = filtfilt(b,a,sig1); % Perform filter
+            data.sig1 = filtfilt(b,a,sig1) + mean(sig1); % Perform filter
         end
         
         if exist('sig2','var') == 1
-            data.sig2 = filtfilt(b,a,sig2); % Perform filter
+            data.sig2 = filtfilt(b,a,sig2) + mean(sig2); % Perform filter
         end
         
         if exist('sig3','var') == 1
-            data.sig3 = filtfilt(b,a,sig3); % Perform filter
+            data.sig3 = filtfilt(b,a,sig3) + mean(sig3); % Perform filter
         end
         
         if exist('sig4','var') == 1
-            data.sig4 = filtfilt(b,a,sig4); % Perform filter
+            data.sig4 = filtfilt(b,a,sig4) + mean(sig4); % Perform filter
         end
         
 end
@@ -33,12 +47,12 @@ end
                 data.filt_sig2 = movmedian(data.sig2,data.frame_rate); % perform median filter over 1 second duration
             end
 
-            if exist('sig2','var') == 1
-                data.filt_sig2 = movmedian(data.sig2,data.frame_rate); % perform median filter over 1 second duration
+            if exist('sig3','var') == 1
+                data.filt_sig3 = movmedian(data.sig3,data.frame_rate); % perform median filter over 1 second duration
             end
 
-            if exist('sig2','var') == 1
-                data.filt_sig2 = movmedian(data.sig2,data.frame_rate); % perform median filter over 1 second duration
+            if exist('sig4','var') == 1
+                data.filt_sig4 = movmedian(data.sig4,data.frame_rate); % perform median filter over 1 second duration
             end
             
         else
@@ -51,12 +65,12 @@ end
                 data.filt_sig2 = movmedian(sig2,data.frame_rate); % perform median filter over 1 second duration
             end
 
-            if exist('sig2','var') == 1
-                data.filt_sig2 = movmedian(sig2,data.frame_rate); % perform median filter over 1 second duration
+            if exist('sig3','var') == 1
+                data.filt_sig3 = movmedian(sig3,data.frame_rate); % perform median filter over 1 second duration
             end
 
-            if exist('sig2','var') == 1
-                data.filt_sig2 = movmedian(sig2,data.frame_rate); % perform median filter over 1 second duration
+            if exist('sig4','var') == 1
+                data.filt_sig4 = movmedian(sig4,data.frame_rate); % perform median filter over 1 second duration
             end
             
         end

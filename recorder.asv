@@ -1,16 +1,13 @@
 function recorder(app, properties)
+%% Initializing IR camera
+% status(app, status_text, status_color, draw, stop)
 clc;
-%% Set global variables
-
 global viewer_is_running; % initialize the main frame grabber loop as global variable
 global IRInterface; % initialize the interface as a global variable
 global feedback;
 feedback.posneg = 0;
 feedback.wake = 0;
 feedback.feel = zeros(1,5);
-feedback.status = 0;
-
-%% Initializing IR camera
 
 err = 0; % declare no errors so far
 
@@ -251,19 +248,15 @@ while(viewer_is_running) % main loop
             playFlag = 0;
         end
         
-        if properties.save_data == 1 && properties.popup == 1 && feedback.status == 1 % re-open popup in case it was close using X not using OK button
-            if ishandle(popup_fig) == 0
-                popup_fig = popup_fig_finder(true); % opens popup UI figure with always-on-top mode
-                popup_fig.Position = str2num(app.PopuppositionEditField.Value); % locate pop-up figure where it should be
-            end
-        end
-        
         if (t(idx) - t(tLast_play) >= properties.pauseTime*1000 && playFlag == 0 &&...
                 videosPlayed < list_length) || (playFlag == 0 && videosPlayed == 0) % checks if it's time to play a video
-            
-            if properties.save_data == 1 && properties.popup == 1
-                
-                if feedback.status == 0
+
+            %if exist('popup_fig','var')
+%                if ishandle(popup_fig) == 1 
+                    
+                    if properties.save_data == 1 && properties.popup == 1
+                        
+                        if popup_fig.RunningAppInstance.popup_isdone == 1
                     
                     try
                         app.Status1.FontColor = [0.29,0.58,0.07]; % dark green
@@ -276,22 +269,22 @@ while(viewer_is_running) % main loop
                     playFlag = 1; % marks next time to do a black screen
                     tLast_play = idx; % saves the index of the last time found
                     videosPlayed = videosPlayed + 1; % increase number of videos played counter
-                    
-                end
+                   
+                     end
                 
             else
                 
-                try
-                    app.Status1.FontColor = [0.29,0.58,0.07]; % dark green
-                    app.Status1.Value = sprintf('%s', ['Playing video: ', num2str(j), ' / ', num2str(list_length), '.']);
-                catch
-                end
-                
-                v.play([playlist(j).folder, '\', playlist(j).name]);
-                playlist(j).startTime = toc(tStart); % saves time stamp to playlist
-                playFlag = 1; % marks next time to do a black screen
-                tLast_play = idx; % saves the index of the last time found
-                videosPlayed = videosPlayed + 1; % increase number of videos played counter
+                    try
+                        app.Status1.FontColor = [0.29,0.58,0.07]; % dark green
+                        app.Status1.Value = sprintf('%s', ['Playing video: ', num2str(j), ' / ', num2str(list_length), '.']);
+                    catch
+                    end
+                    
+                    v.play([playlist(j).folder, '\', playlist(j).name]);
+                    playlist(j).startTime = toc(tStart); % saves time stamp to playlist
+                    playFlag = 1; % marks next time to do a black screen
+                    tLast_play = idx; % saves the index of the last time found
+                    videosPlayed = videosPlayed + 1; % increase number of videos played counter
                 
             end
             
@@ -311,11 +304,12 @@ while(viewer_is_running) % main loop
                 properties.playTime = playlist(j).duration; % save length of next video - if exists
             end
             
-            if properties.popup == 1 && feedback.status == 0 % if popup is desired - get location and call function
+            if properties.popup == 1 % if popup is desired - get location and call function
                 
                 popup_fig = popup_fig_finder(true); % opens popup UI figure with always-on-top mode
                 popup_fig.Position = str2num(app.PopuppositionEditField.Value); % locate pop-up figure where it should be
-                feedback.status = 1;
+                popup_fig.RunningAppInstance.popup_filename = filename;
+                popup_fig.RunningAppInstance.popup_isdone = 0;
                 
             end
             
@@ -336,18 +330,22 @@ while(viewer_is_running) % main loop
                 
             end
             
+            %{
+            if exist('popup_fig','var')
+            if ishandle(popup_fig) == 1 && properties.popup == 1 && properties.save_data == 1
+
+                if popup_fig.RunningAppInstance.popup_isdone = 1
+                    
+                end
+
+            end
+            end
+            %}
+            
         end
         
         if t(idx) - t(tLast_play) >= properties.lastBlackScreen*1000 && videosPlayed == list_length && playFlag == 0
-            
-            if properties.save_data == 1 && properties.popup == 1
-                if feedback.status == 0
-                    viewer_is_running = 0; % finish program
-                end
-            else
-                viewer_is_running = 0; % finish program
-            end
-            
+            viewer_is_running = 0; % finish program
         end
         
     end

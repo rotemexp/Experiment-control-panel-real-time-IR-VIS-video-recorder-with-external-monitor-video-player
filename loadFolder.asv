@@ -1,0 +1,40 @@
+function list = loadFolder(location)
+
+    files = dir(location);
+    try
+        files = nestedSortStruct(files, 'name'); % loading folder content
+    catch
+        error('Invalid folder');
+    end
+
+    for i=1:length(files) % building integer vector with files number
+        files(i).order = str2num(['uint8(',strtok(files(i).name,'.'),')']);
+    end
+
+    for i=1:length(files) % arranging file structure by file name
+        [~, col] = find([files.order] == i);
+        try
+            list(i) = files(col);
+        catch
+            error(['Video file ', num2str(i),' is missing']);
+        end
+    end
+
+    timeStart = tic;
+    j = 1;
+    for i=1:length(list) % playing video files
+        filename = [list(i).folder, '\', list(i).name];
+        v.play(filename);
+        clc
+        disp(['playing video number: ', num2str(i)]);
+        time(j) = toc(tStart); j = j + 1; % saves time stamp
+        pause(0.5);
+        v.Fullscreen = 'on';
+        pause(5);
+        v.play('black.png');
+        pause(5);
+    end
+
+    v.quit();
+    
+end

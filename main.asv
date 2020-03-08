@@ -1,0 +1,71 @@
+%%  Code written in MATLAB 2018b by Shaul Shvimmer, Electro-Optical engineering M.Sc student. saulsh@post.bgu.ac.il
+%clear all; close all; clc
+
+%% Data files
+
+% video file name to open:
+mainFolder = 'C:\Users\saul6\Documents\Electrooptical Eng\Thesis\Matlab\Record and Analayze\';
+subFolder = 'Recordings\';
+fileName = 'Reading test_fixed data';
+file2load = fullfile(mainFolder,subFolder,fileName);
+
+% select calculation options:
+ROIcomparison = 1; % select 2 ROI: 0 = no, 1 = manual select, [x, x, x, x] = coordinates to calculate
+crop_cor1 = 0; % [x, x, x, x] = coordinates to calculate, 0\1 = manual select
+improve_img = 0; % perform 2D image processing methods on each frame: 0 = no, 1 = yes (works only for RGB IR video)
+save_data = 0; % save analaysed data file: 0 = no, 1 = yes
+start_time = 0; % time to start the calculations. 0: runs from the begining of the video file
+end_time = 0; % time to finish the calculations. 0: runs until the end of the video file
+N = 2; % Divides the large ROI to NxN squares
+
+data = IR_analysis(file2load, N, start_time, end_time, improve_img, save_data, crop_cor1, ROIcomparison);
+
+%% Filters and plot signal
+
+filter_type = 'no'; % 'low' / 'high' / 'bandpass' / 'no'
+cutoff_freq = 0.01;% [3, 3.999] % positive number in case filter is low / high. for bandpass use: [f_low, f_high]
+median = 1; % perform moving median: 0 = no, 1 = yes;
+
+data = filter_data(data, filter_type, cutoff_freq, median);
+
+Plot_IR = 0;
+Plot_filtered_IR = 1;
+Plot_VIS = 0;
+Plot_filtered_VIS = 0;
+
+plot_FFT = 0;
+plot_STFT = 0;
+plot_CWT = 0;
+
+
+signalplot(data, Plot_IR, Plot_filtered_IR, Plot_VIS, Plot_filtered_VIS);
+
+%% Play video
+
+fast_play = 1;
+
+play(file2load, fast_play);
+
+%% STFT
+
+ns = 16; % divide the signal into ns sections of equal length
+ov = 0.5; % 50% overlap between sections
+
+STFTplot(data, ns, ov);
+
+%% CWT
+
+params.gamma = 3; % standard = 3; must be greater then 1 and lower then timeBandwidth.
+params.timeBandwidth = 120; % must be a scalar in the range 3-120. The standard deviation of the Morse wavelet in time is approximately sqrt(TimeBandwidth/2). The standard deviation of the Morse wavelet in frequency is approximately 1/2*sqrt(2/TimeBandwidth)
+params.VoicesPerOctave = 10; % must be an even integer from 4 to 48, defines the number of scales of the wavelet, between integer scales (fractions)
+
+CWTplot(params, data);
+
+%% FFT
+
+FFTplot(params, data);
+
+%% Save
+params.fileName_analayzed = erase(params.fileName,'.mat');
+params.Analayzed_file_location =([params.mainFolder, 'Analayzed noise\', params.fileName_analayzed, '_analayzed']);
+save(params.Analayzed_file_location,'data_IR','params','properties');

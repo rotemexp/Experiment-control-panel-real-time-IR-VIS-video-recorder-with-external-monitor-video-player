@@ -1,4 +1,4 @@
-function STFTplot(data, sig, plotMax, FrequencyLimits, ns, ov)
+function STFTplot(data, plotMax, FrequencyLimits, ns, ov, sig)
 % performing STFT calculations (spectrogram - built in MATLAB function)
 
 disp ([datestr(now), ' - Calculating STFT']); % displays progress

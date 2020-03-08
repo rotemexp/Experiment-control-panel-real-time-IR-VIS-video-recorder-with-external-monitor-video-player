@@ -1,4 +1,4 @@
-function CWTplot(data, sig, plotMax, FrequencyLimits, gamma, timeBandwidth, VoicesPerOctave)
+function CWTplot(data, plotMax, FrequencyLimits, gamma, timeBandwidth, VoicesPerOctave, sig)
 % performing CWT calculations
 disp ([datestr(now), ' - Calculating CWT']); % displays progress
 
@@ -25,7 +25,9 @@ for i=1:data.N^2
     title(['CWT of channel ' num2str(i)]);
     xlabel('Time [sec]'); ylabel('Frequency [Hz]');
     xlim([data.start_time, data.end_time]);
-    %ylim(axisRange(params));
+    if length(FrequencyLimits) > 1
+        ylim(FrequencyLimits);
+    end
     surface(data.tvec,frq,abs(WTk(:,:,i)))
     shading interp
     % set(gca,'yscale','log');
@@ -41,13 +43,15 @@ if plotMax == 1
     end
     
     figure('Name', 'Max CWT values'); % plots the CWT spectrograms highest values only
-    for i=1:params.N^2
-        subplot(params.N,params.N,i);
+    for i=1:data.N^2
+        subplot(data.N,data.N,i);
         title(['max CWT of channel ' num2str(i) '. Peak at: '...
             num2str(round(mostFrequent(1,i),2)) ' Hz. (' num2str(round(mostFrequent(1,i)*60,2)) ' BPM)']);
         xlabel('Time [sec]'); ylabel('Frequency [Hz]');
-        xlim([params.startTime, params.endTime]);
-        ylim(axisRange(params));
+        xlim([data.start_time, data.end_time]);
+        if length(FrequencyLimits) > 1
+            ylim(FrequencyLimits);
+        end
         hold on
         scatter(data.tvec, CWT_results(i,:),20,'filled')
     end

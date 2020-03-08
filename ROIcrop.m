@@ -7,7 +7,7 @@ end
 fig = figure('Name', 'Please crop the Region Of Interest');
 title('Please crop the Region Of Interest');
 hold on; axis on;
-[~, crop_cor] = imcrop(frame,[]);
+[~, crop_cor] = imcrop(frame);
 crop_cor = round(crop_cor);
 
 if numel(crop_cor) ~= 0

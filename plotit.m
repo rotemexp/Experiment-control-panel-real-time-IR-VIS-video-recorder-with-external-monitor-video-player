@@ -9,14 +9,15 @@ figure('Name', description); % opens a new figure window
 for i=1:data.N^2
     
     if exist('sig1','var') == 1 % plot 1st data vector
-        subplot(data.N,data.N,i); plot(data.tvec, sig1(:,i));%, 'Color', [0.68,0.83,0.07]);
-        title(['IR intensity at channel ' num2str(i)]);
+        subplot(data.N,data.N,i); plot(data.tvec, sig1(:,i)); %, 'Color', [0.68,0.83,0.07]);
+        title(['intensity at channel ' num2str(i)]);
         xlabel('Time [sec]'); ylabel('Temperature [c]');
         xlim([data.start_time, data.end_time]);
         hold on;
         axis on;
         mini(1) = min(sig1(:,i));
         maxi(1) = max(sig1(:,i));
+        sigma(1) = std(sig1(:,i));% calculate plot std
     end
     
     if exist('sig2','var') == 1 % plot 2nd data vector - if exist
@@ -28,6 +29,7 @@ for i=1:data.N^2
         axis on;
         mini(2) = min(sig2(:,i));
         maxi(2) = max(sig2(:,i));
+        sigma(2) = std(sig2(:,i)); % calculate plot std
     end
     
     if exist('sig3','var') == 1 % plot 3rd data vector - if exist
@@ -39,6 +41,7 @@ for i=1:data.N^2
         axis on;
         mini(3) = min(sig3(:,i));
         maxi(3) = max(sig3(:,i));
+        sigma(3) = std(sig3(:,i)); % calculate plot std
     end
     
     if exist('sig4','var') == 1 % plot 4th data vector - if exist
@@ -50,8 +53,12 @@ for i=1:data.N^2
         axis on;
         mini(4) = min(sig4(:,i));
         maxi(4) = max(sig4(:,i));
+        sigma(4) = std(sig4(:,i)); % calculate plot std
     end
     
+    %legendCell = strcat('Std: ',strtrim(cellstr(num2str(sigma(:))))); % constract legend array
+    %legend(legendCell); % plot legend
+
     if isfield(data, 'eventsTiming') == 1
         for j=1:length(eventsTiming) % prints experiments timing lines on each plot
             line([eventsTiming(j,1), eventsTiming(j,1)],[min(mini), max(maxi)],'LineStyle',':','Color','blue') % start

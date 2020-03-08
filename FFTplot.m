@@ -1,9 +1,9 @@
-function FFTplot(data, sig, xlimit)
+function FFTplot(data, FrequencyLimits, sig)
 %% performing FFT calculations
 
 disp ([datestr(now), ' - Calculating FFT']); % displays progress
 
-SIG = abs(fftshift(fft(sig))); % Performing FFT 
+SIG = abs(fftshift(fft(sig))); % Performing FFT
 
 if mod(length(SIG),2) == 0 % checks if number of frames to process is even (0) or odd (1)
     SIG_positive = SIG(round(length(SIG)/2 + 1) : end,:); % taking only the positive frequancies data
@@ -21,12 +21,11 @@ for i=1:data.N^2
     subplot(data.N,data.N,i); plot(fvec, SIG_positive(:,i)); axis on;
     title(['FFT of channel ' num2str(i)]);
     xlabel('Frequency [Hz]'); ylabel('Normalized intensty');
-    if exist('xlimit','var')
-        if length(xlimit) == 2
-            xlim(xlimit);
-        end
+    
+    if length(FrequencyLimits) == 2
+        xlim(FrequencyLimits);
     end
-    %ylim([0, maxF]);
+     
     grid on;
 end
 

@@ -34,7 +34,8 @@ if exist('files','var') == 1 && isempty(files) == 0
         [~, col] = find([files.idx] == i);
         
         if isempty(col) == 0 % case files name are numbered
-            list(j) = files(col); % buils the new list
+            list(j) = files(col(1)); % buils the new list
+            files(col(1)).idx = []; % remove added value from list
             j = j + 1;
         else % case random file names
             list = files;

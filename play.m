@@ -25,6 +25,10 @@ elseif fast_play == 1
     just_run = 1;
 end
 
+if frame_rate == 0
+    frame_rate = mean(FPS(:,1));
+end
+
 segment_time = 1/frame_rate;
 len = length(buffer_IR);
 i = 1;

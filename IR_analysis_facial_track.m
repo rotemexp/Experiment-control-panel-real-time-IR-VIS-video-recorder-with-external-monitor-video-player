@@ -1,4 +1,4 @@
-function data = IR_analysis(data, file2load, N, start_time, end_time, enhance_image, crop_cor1, ROIcomparison, average2zero)
+function data = IR_analysis_facial_track(data, file2load, N, start_time, end_time, enhance_image, crop_cor1, ROIcomparison, face_detect)
 %% Load data
 tic
 disp ('[0] Loading IR video data...');
@@ -26,11 +26,11 @@ end
 
 len = length(buffer_IR); % number of recorded frames
 
-%if frame_rate == 0
+if frame_rate == 0
     frameRate = mean(FPS(:,1));
-%else
-    %frameRate = frame_rate; % assignts it to a local variable so function could work after vidObj was closed
-%end
+else
+    frameRate = frame_rate; % assignts it to a local variable so function could work after vidObj was closed
+end
 
 if start_time == 0 % setting parameters to the desired begining
     frameStart = 1;
@@ -55,9 +55,7 @@ end
 duration = end_time-start_time;
 
 data.IR_intens = double(zeros(floor(frameRate*(duration).*0.9), N^2));
-if numel(ROIcomparison) == 4 | ROIcomparison == 1
 data.IR_intens2 = double(zeros(floor(frameRate*(duration).*0.9), N^2));
-end
 cor = zeros(N^2,4);
 
 %% loop over the frames
@@ -67,47 +65,82 @@ while (k <= (frameStop - frameStart + 1))% running on each frame of the video fi
     disp ([num2str(round((k /(frameRate*((duration))))*100)), ' [%]']);
     
     if IRpalette == 0
-        frame = im2double(buffer_IR(:,:,k + frameStart - 1)); % reads current frame from gray IR video
+        frame = im2single(buffer_IR(:,:,k + frameStart - 1)); % reads current frame from gray IR video
     elseif IRpalette == 1
-        frame = im2double(buffer_IR(:,:,:,k + frameStart - 1)); % reads current frame from color IR video
+        frame = im2single(buffer_IR(:,:,:,k + frameStart - 1)); % reads current frame from color IR video
     end
     
-    if enhance_image == 1 && IRpalette == 1
+    if enhance_image == 1
         frame = img_enhancement(frame); % calls image enhancement function
+    else
+        frame = rgb2gray(frame);
     end
     
     if k == 1 % case first loop run
         
-        if crop_cor1 == 0
-            crop_cor1 = ROIcrop(2, frame); % calls ROI crop function
-        end
-        
-        if numel(ROIcomparison) == 4
-            crop_cor2 = ROIcomparison;
-        else
-            if ROIcomparison == 1 % case the user need to provide 2nd ROI coordinates
-                crop_cor2 = ROIcrop(2, frame); % calls ROI crop function again
+        if face_detect == 1 % case auto face detect
+            faceDetector = vision.CascadeObjectDetector(); % Create a cascade detector object.
+            crop_cor1 = step(faceDetector, frame);
+        else % case user selects ROI
+            if crop_cor1 == 0 || crop_cor1 == 1
+                crop_cor1 = ROIcrop(2, frame); % calls ROI crop function
             end
+            %{
+            if numel(ROIcomparison) == 4
+                crop_cor2 = ROIcomparison;
+            else
+                if ROIcomparison == 1 % case the user need to provide 2nd ROI coordinates
+                    crop_cor2 = ROIcrop(2, frame); % calls ROI crop function again
+                end
+            end
+            %}
+            face_cor = crop_cor1;
         end
         
+        bboxPoints = bbox2points(face_cor(1, :));
+        points = detectMinEigenFeatures(frame, 'ROI', face_cor(1, :));
+        pointTracker = vision.PointTracker('MaxBidirectionalError', 2);
+        points = points.Location;
+        initialize(pointTracker, points, frame);
+
     end
     
-    cropped_frame = imcrop(frame,crop_cor1); % cropping the frame
+    oldPoints = points;
+    [points, isFound] = step(pointTracker, frame); % Track the points
+    visiblePoints = points(isFound, :);
+    oldInliers = oldPoints(isFound, :);
+
+    if size(visiblePoints, 1) >= 2 % need at least 2 points
+
+        [xform, ~, visiblePoints] = estimateGeometricTransform(...
+            oldInliers, visiblePoints, 'similarity','Confidence', 50, 'MaxDistance', 6); % Estimate the geometric transformation between the old points and the new points and eliminate outliers
+
+        bboxPoints = transformPointsForward(xform, bboxPoints); % Apply the transformation to the bounding box points
+
+        bboxPolygon = reshape(bboxPoints', 1, []);
+        frame_plus = insertShape(frame, 'Polygon', bboxPolygon, 'LineWidth', 2); % Insert a bounding box around the object being tracked
+
+        %enhanced_frame_plus = insertMarker(enhanced_frame_plus, visiblePoints, '+', 'Color', 'white'); % Display tracked points
+        
+        imshow(rgb2gray(frame_plus),[]); %colormap(gray);
+        %drawnow();
+        %disp(bboxPolygon);
+        % Reset the points
+        oldPoints = visiblePoints;
+        setPoints(pointTracker, oldPoints);
+    end
     
-    %if normalize == 1
-    %    cropped_frame = cropped_frame ./ max(max(cropped_frame)); % normalize data to 0-1
-    %end
+    k = k + 1;
+    
+    continue
+    
+    cropped_frame = imcrop(frame,crop_cor1); % cropping the frame
     
     data.IR_intens(k,:) = intensity_calc(N, cropped_frame, 0); % calculate averaged intensity at ROI's
     
     if ROIcomparison(1) == 1 || numel(ROIcomparison) == 4 % case 2nd ROI needs to be calculated
         
-        cropped_frame2 = cropped_frame2 ./ max(max(cropped_frame2)); % normalize data to 0-1
-        
-        %if normalize == 1
-        %    cropped_frame2 = im2double(cropped_frame2); % normalize data to 0-1
-        %end
-        
+        cropped_frame2 = imcrop(frame,crop_cor2); % cropping the 2nd frame
         data.IR_intens2(k,:) = intensity_calc(N, cropped_frame2, 0); % calculate averaged intensity at 2nd ROI
         
     end
@@ -134,12 +167,6 @@ data.N = N;
 data.start_time = start_time;
 data.end_time = end_time;
 
-data.crop_cor1 = crop_cor1;
-data.ROI1_size = size(cropped_frame);
-data.ROI1_max_temp = max(data.IR_intens);
-data.ROI1_min_temp = min(data.IR_intens);
-data.ROI1_max_temp_diff = data.ROI1_max_temp - data.ROI1_min_temp;
-
 if exist('play_list', 'var') == 1
     data.eventsTiming = play_list(:,3:4); % takes the start and end time of videos playback
 end
@@ -147,14 +174,6 @@ end
 if ROIcomparison(1) == 1 || numel(ROIcomparison) == 4
     data.IR_diff = abs(data.IR_intens - data.IR_intens2); % calculates the difference between the 2 ROI's
     data.IR_crop_cor2 = crop_cor2; % save 2nd cropping coordinates
-    
-    if average2zero == 1
-        data.IR_intens2 = data.IR_intens2 - mean(data.IR_intens2);
-    end
-end
-
-if average2zero == 1
-    data.IR_intens = data.IR_intens - mean(data.IR_intens);
 end
 
 tvec = single((frameStart + 1 : length(data.IR_intens) + frameStart) ./ frameRate); % creates the time vector
