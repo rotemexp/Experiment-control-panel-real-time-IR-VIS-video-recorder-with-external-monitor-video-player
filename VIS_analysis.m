@@ -197,9 +197,10 @@ data.end_time = end_time;
 %% plot
 
 file_name = retrieve_name(file2load); % get file name from full file path
+avg_frame = (frame(:,:,1) + frame(:,:,2) + frame(:,:,3)) ./ 3;
 
 figure('Name','VIS camera: ROI selected');
-imshow(frame,[]); axis on; % plotting image and channels locations
+imshow(avg_frame,[]); axis on; % plotting image and channels locations
 title(['Video file name: ', file_name], 'Interpreter', 'none');
 
 for i=1:N^2 % 1st ROI

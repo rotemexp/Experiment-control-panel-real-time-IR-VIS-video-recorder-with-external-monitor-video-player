@@ -1,5 +1,5 @@
 %%  Code written in MATLAB 2018b by Shaul Shvimmer, Electro-Optical engineering M.Sc student. saulsh@post.bgu.ac.il
-%clear all; close all; clc
+clear all; close all; clc
 
 if ~exist('data','var')
    data.create = 1; 
@@ -8,7 +8,7 @@ end
 % video file name to open:
 mainFolder = 'C:\Users\saul6\Documents\Electrooptical Eng\Thesis\Matlab\Record and Analayze\';
 subFolder = 'Recordings\';
-fileName = 'read_max_FPS';
+fileName = 'ELP ir';
 file2load = fullfile(mainFolder,subFolder,fileName);
 
 % select calculation options:
@@ -24,9 +24,9 @@ enhance_image = 0; % enhancment of the image before processing: 0 = no, 1 = yes.
 %normalize = 1; % normalize graylevel. 0 = no, 1 = yes.
 average2zero = 0; % average the results to flactuate around zero (minus average)
 
-data = IR_analysis(data, file2load, N, start_time, end_time, enhance_image, crop_cor1, ROIcomparison, average2zero);
+%data = IR_analysis(data, file2load, N, start_time, end_time, enhance_image, crop_cor1, ROIcomparison, average2zero);
 
-%data = VIS_analysis(data, file2load, N, start_time, end_time, enhance_image, crop_cor1, ROIcomparison, newFrameRate);
+data = VIS_analysis(data, file2load, N, start_time, end_time, enhance_image, crop_cor1, ROIcomparison, newFrameRate);
 %data = IR_analysis_facial_track(data, file2load, N, start_time, end_time, enhance_image, crop_cor1, ROIcomparison, face_detect);
 %% FLIR file analysis
 reduce_frame_rate = 1; % reduce the frame rate of the FLIR IR video from 80 to 40.
@@ -48,15 +48,14 @@ data = filterit(filter_type, cutoff_freq, median, ...
     data);
 
 %% Plot signal
-description = 'FLIR IR signals';
+description = 'ELP zoom';
 % plots colors by entered order: 1- Blue, 2- Orange, 3- Yellow, 4- Purple.
-plotit(data, description,...
-     data.IR_intens) % can plot up to 4 signals on each graph
+plotit(data, description, data.R) % can plot up to 4 signals on each graph
 
 %% FFT
 FrequencyLimits = [0.03, 3]; % 2 element vector as x axis (frequency) limits
 FFTplot(data, FrequencyLimits, ...
-    data.IR_intens)
+    data.R)
     
 %% CWT
 
@@ -67,7 +66,7 @@ VoicesPerOctave = 10; % must be an even integer from 4 to 48, defines the number
 FrequencyLimits = [0, 5]; % 2 element vector as x axis (frequency) limits
 
 CWTplot(data, plotMax, FrequencyLimits, gamma, timeBandwidth, VoicesPerOctave,...
-    data.IR_intens);
+    data.VIS);
 
 %% STFT
 

@@ -1,0 +1,13 @@
+%% Configuring VLC player-
+
+% Ctrl+p -> Interface -> [ ] Show controls in Fullscreen mode
+
+% Ctrl+p -> Subtitles/OSD: [ ] Show media title on video start
+
+% Ctrl+p -> Playlist -> Play and stop
+
+% Ctrl+p -> Video -> [v] Fullscreen video output & [v] Always on top
+
+% Ctrl+p -> Click on All to reveal Advanced Preferences.
+% Navigate to Input / Codecs > Demuxers > Image.
+% Change the value of Duration in seconds from 10.00 to something else (like 120)

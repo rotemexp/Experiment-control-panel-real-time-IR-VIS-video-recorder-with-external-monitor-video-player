@@ -17,7 +17,11 @@ elseif app.posneg_5.Value == 1
 elseif app.posneg_6.Value == 1
     posneg = 6;
 elseif app.posneg_7.Value == 1
-    posneg = 7;
+    posneg = 7; 
+elseif app.posneg_8.Value == 1
+    posneg = 8;
+elseif app.posneg_9.Value == 1
+    posneg = 9;
 end
 
 if app.wake_1.Value == 1
@@ -34,6 +38,10 @@ elseif app.wake_6.Value == 1
     wake = 6;
 elseif app.wake_7.Value == 1
     wake = 7;
+elseif app.wake_8.Value == 1
+    wake = 8;
+elseif app.wake_9.Value == 1
+    wake = 9;
 end
 
 if app.feel_1.Value == 1
