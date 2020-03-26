@@ -19,6 +19,7 @@ https://www.amazon.com/gp/product/B07R4CLRQH/ref=ppx_yo_dt_b_asin_title_o02_s00?
 
 # Infrared camera:
 The video recorder fits OPTRIS IR camera's and specifically PI450 model, and it can be easily modified to work with other IR cameras.
+link for the PI450 IR camera: https://www.optris.global/thermal-imager-optris-pi-400i-pi-450i
 
 # Remarks:
 
