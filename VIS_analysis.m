@@ -4,30 +4,40 @@ tic
 disp ('[0] Loading VIS camera data...');
 
 try
-    load(file2load);
+    load(file2load, '-regexp', '^(?!buffer_IR)\w'); % loads all variables except buffer_IR
 catch
     error('Could not load data file') % no data file to process
     return
 end
 
-if  exist('buffer_R','var') == 0 && exist('buffer_G','var') == 0 ...
-        && exist('buffer_B','var') == 0 && exist('buffer_VIS','var') == 0
-    error('o video file to process was found inside the selected data file') % no data file to process
+if exist('buffer_VIS','var') == 0
+    error('No video file to process was found inside the selected data file') % no data file to process
     return
 end
 %% Prepare variables
 
-if exist('buffer_VIS','var') == 0
-    RGB = 1;
-    len = length(buffer_R);
-else
+if ndims(buffer_VIS) == 3
     RGB = 0;
-    len = length(buffer_VIS);
+elseif ndims(buffer_VIS) == 4
+    RGB = 1;
+else
+    error('No video file to process was found inside the selected data file') % no data file to process
+    return
+end
+
+len = length(buffer_VIS);
+
+NaNidx = find(isnan(play_list(:,7)),1); % check if there's NaN in the FPS data vector
+
+if isempty(NaNidx) == 1
+    frameRate = mean(play_list(:,7)); % calculate average frame rate of all indices
+else
+    frameRate = mean(play_list(1:NaNidx-1,7)); % calculate average frame rate until the NANs
 end
 
 if newFrameRate == 0 % case no need to change frame rate
     if frame_rate == 0
-        frame_rate = mean(FPS(:,1));
+        frame_rate = mean(fps(:,1));
     else
         newFrameRate = frame_rate;
     end
@@ -45,15 +55,21 @@ else
     frameStart = round(start_time*frame_rate);
 end
 
-if end_time == 0 % setting the end time in range
-    end_time = (single(t(end,1)) / 1000);
+if end_time == 0 % setting the end time
     
-    if end_time < 0.1
-        end_time = (single(t(1,end)) / 1000); % temporary fix for old files
+    if exist('play_list','var') == 1
+        end_time = sum(play_list(:,2));
+    else
+        end_time = (single(t(end,1)) / 1000);
     end
-end
+    
+    frameStop = len;
+    
+else
+    
+    frameStop = round(end_time*frame_rate); % defining the frame number to stop the calculation at
 
-frameStop = round(end_time*frame_rate); % defining the frame number to stop the calculation at
+end
 
 if frameStop > len % for cases frameStop is larger then max frames
     frameStop = len;
@@ -67,17 +83,15 @@ k = double(1);
 %% loop over the frames
 
 while (k <= (frameStop - frameStart + 1))% running on each frame of the video file
+    
     clc
     disp ('[1] Extracting signal from face regions...'); % displays precentage of progress
     disp ([num2str(round((k /(numOfFrames))*100)), ' [%]']);
     
     if RGB == 1
-        img(:,:,1) = buffer_R(:,:,k);
-        img(:,:,2) = buffer_G(:,:,k);
-        img(:,:,3) = buffer_B(:,:,k);
-        
+        img = buffer_VIS(:,:,:,k); % color
     else
-        img = buffer_VIS(:,:,k);
+        img = buffer_VIS(:,:,k); % gray
     end
     
     frame = im2double(img); % reads current frame from video
@@ -178,29 +192,47 @@ else
     
 end
 
-tvec = single((frameStart + 1 : len + frameStart) ./ frame_rate);
-data.tvec = tvec';
-
-if exist('play_list', 'var') == 1
-    data.eventsTiming = play_list(:,3:4); % takes the start and end time of videos playback
-end
-
-data.VIS_exist = 1;
-data.VIS_crop_cor1 = crop_cor1; % save cropping coordinates
+data.VIS_crop_cor1 = uint16(crop_cor1); % save cropping coordinates
 data.frame_rate = frame_rate;
-data.FPS = single(FPS);
+data.fps = fps;
 data.t = t;
 data.N = N;
 data.start_time = start_time;
 data.end_time = end_time;
 
+if properties.playVideofiles == 1
+    
+    data.play_list_fields = play_list_fields;
+    
+    if isempty(NaNidx) == 1
+    
+        data.playlist = playlist;
+        data.play_list = play_list;
+        
+    else % case need to slice the NAN's
+        
+        data.playlist = playlist;
+        data.play_list = play_list(1:NaNidx-1,:);
+        
+    end
+    
+end
+
+if properties.popup == 1
+
+    data.feel = uint8(feel);
+    data.posneg = uint8(posneg);
+    data.wake = uint8(wake);
+    
+end
+
+
 %% plot
 
 file_name = retrieve_name(file2load); % get file name from full file path
-avg_frame = (frame(:,:,1) + frame(:,:,2) + frame(:,:,3)) ./ 3;
 
 figure('Name','VIS camera: ROI selected');
-imshow(avg_frame,[]); axis on; % plotting image and channels locations
+imshow(frame,[]); axis on; % plotting image and channels locations
 title(['Video file name: ', file_name], 'Interpreter', 'none');
 
 for i=1:N^2 % 1st ROI

@@ -15,22 +15,22 @@ feedback.status = 0;
 err = 0; % declare no errors so far
 
 if properties.IR_camera == 1
-    try
-    err = status(app, 'Connecting to IR camera...', 'g', 1, 0);
-    
-    IRInterface = EvoIRMatlabInterface;
-    IRViewer = EvoIRViewer; % initialize the viewer
-    close(1); % closes the Evocortex special window, so a new "regular" figure window will be opnened.
-    viewer_is_running = 1; % ok to run frame grabber loop
-    
-    if ~IRInterface.connect()
-        close all;
-        err = status(app, 'Error connecting to IR camera.', 'r', 1, 1);
-    end
-    
-    catch
-       err = status(app, 'Error connecting to IR camera.', 'r', 1, 1);
-     end
+    %try
+        err = status(app, 'Connecting to IR camera...', 'g', 1, 0);
+        
+        IRInterface = EvoIRMatlabInterface;
+        IRViewer = EvoIRViewer; % initialize the viewer
+        close(1); % closes the Evocortex special window, so a new "regular" figure window will be opnened.
+        viewer_is_running = 1; % ok to run frame grabber loop
+        
+        if ~IRInterface.connect()
+            close all;
+            err = status(app, 'Error connecting to IR camera.', 'r', 1, 1);
+        end
+        
+    %catch
+        %err = status(app, 'Error connecting to IR camera.', 'r', 1, 1);
+    %end
 end
 %% Initializing VIS camera
 if properties.VIS_camera == 1 && err == 0
@@ -82,6 +82,9 @@ else
 end
 %% Saving data file
 if properties.save_data == 1 && err == 0
+    
+    last_idx = 0;
+    
     err = status(app, 'Creating data file to save videos to...', 'g', 1, 0);
     
     if properties.timeStamp4savedFile == 0
@@ -90,7 +93,7 @@ if properties.save_data == 1 && err == 0
         filename = ['Recordings\', properties.title, '_', num2str(now), '.mat']; % file name with timestamp
     end
     
-    try
+    %try
         
         % get resulution values:
         res_A = str2double(extractAfter(properties.camera_resolution,"x"));
@@ -98,46 +101,39 @@ if properties.save_data == 1 && err == 0
         
         % Allocates memory:
         if properties.VIS_camera == 1 && properties.gray == 1
-            buffer_VIS(res_A, res_B, str2double(properties.allocation)) = 0; % gray
+            buffer_VIS = zeros(res_A, res_B, str2double(properties.allocation),'uint8'); % gray
         elseif properties.VIS_camera == 1 && properties.gray == 0
-            buffer_VIS(res_A, res_B, 3, str2double(properties.allocation)) = 0; % RGB
+            buffer_VIS = zeros(res_A, res_B, 3, str2double(properties.allocation),'uint8'); % color
         else
             buffer_VIS = 0;
         end
         
         if properties.IR_camera == 1 && properties.tempORcolor == 1
-            buffer_IR(288, 382, str2double(properties.allocation)) = 0;
+            buffer_IR = zeros(288, 382, str2double(properties.allocation),'single'); % temperature
         elseif properties.IR_camera == 1 && properties.tempORcolor == 0
-            buffer_IR(288, 382, 3, str2double(properties.allocation)) = 0;
+            buffer_IR = zeros(288, 382, 3, str2double(properties.allocation),'single'); % psaudo-color
         else
             buffer_IR = 0;
         end
         
         [~, dir_feedback, ~] = mkdir ('Recordings'); % creates dir if it doesn't exist yet
-        
+               
         save(filename,'-v7.3','properties'); % creates the data file and stores first variable in it
-        
-        if properties.playVideofiles == 1 && properties.saveONblack == 1
 
-            err = save_buffer(app, properties, filename, buffer_VIS, buffer_IR, 1, 1);
-            saveObject = matfile(filename,'Writable',true); % create partial variable saving object
-            
-        else
-            saveObject = 0;
-        end
-        
-    catch
-        err = status(app, 'Error creating and saving data file, program ends.', 'r', 1, 1);
-    end
+    %catch
+     %   err = status(app, 'Error creating and saving data file, program ends.', 'r', 1, 1);
+    %end
+    
 end
 
 %% Setting frame loop parameters
 
+fps = uint16(zeros(2,3));
 idx = 1;
 buff_idx = 0;
 saved_frames_counter = 0;
-j = 1;
-q = 1;
+video_idx = 1;
+FPS_idx = 1;
 videosPlayed = 0;
 frameCount = 0;
 tLast_play = 1;
@@ -153,7 +149,7 @@ end
 
 if properties.playTime == 0 && properties.playVideofiles == 1% case auto mode is on
     properties.play_mode = 0;
-    properties.playTime = playlist(j).duration; % save length of first video
+    properties.playTime = playlist(video_idx).duration; % save length of first video
 else
     properties.play_mode = 1;
 end
@@ -188,14 +184,18 @@ end
 %% Frames loop
 while(viewer_is_running) % main loop
     
+    %% Maintain constant frame rate
+    
     if properties.constantFrameRate ~= 0
-        while t_seg(2) - t_seg(1) <= (1000/properties.constantFrameRate) % checks if elpased time is larger then 0.125 sec
+        while t_seg(2) - t_seg(1) <= (1000/properties.constantFrameRate) % checks if elpased time is larger then required
             t_seg(2) = (round(toc(tStart)*1000)); % saves time delta
         end
         t_seg(1) = t_seg(2); % updates last time stamp
     end
     
     t(idx) = (round(toc(tStart)*1000)); % saves time delta
+    
+    %% Get VIS / IR frame from camera
     
     if properties.VIS_camera == 1 % if needs to get frame from VIS camera
         
@@ -221,13 +221,13 @@ while(viewer_is_running) % main loop
         
     end
     
+    %% Store frame in RAM memory
+    
     if properties.save_data == 1 && playFlag == 1 || (properties.save_data == 1 && black_record == 0) % case needs to save recorded frames
         
-            buff_idx = buff_idx + 1;
-            saved_frames_counter = saved_frames_counter + 1;
-            
-            %disp (['saving frame...', num2str(buff_idx)]);
-            
+        buff_idx = buff_idx + 1;
+        saved_frames_counter = saved_frames_counter + 1;
+        
         try
             
             if properties.VIS_camera == 1
@@ -253,6 +253,8 @@ while(viewer_is_running) % main loop
         
     end
     
+    %% Display live view
+    
     if properties.live_view == 1 % if needs to display live view
         
         if properties.VIS_camera == 1 && properties.IR_camera == 1
@@ -267,6 +269,8 @@ while(viewer_is_running) % main loop
     end
     
     drawnow(); % updates image and callbacks
+    
+    %% Play videos (VLC)
     
     if properties.playVideofiles == 1
         
@@ -290,13 +294,13 @@ while(viewer_is_running) % main loop
                     
                     try
                         app.Status1.FontColor = [0.29,0.58,0.07]; % dark green
-                        app.Status1.Value = sprintf('%s', ['Playing video: ', num2str(j), ' / ', num2str(list_length), '.']);
+                        app.Status1.Value = sprintf('%s', ['Playing video: ', num2str(video_idx), ' / ', num2str(list_length), '.']);
                     catch
                     end
                     
-                    v.play([playlist(j).folder, '\', playlist(j).name]);
-                    playlist(j).startTime = toc(tStart); % saves time stamp to playlist
-                    playlist(j).startFrame = saved_frames_counter + 1; % saves start frame to playlist
+                    v.play([playlist(video_idx).folder, '\', playlist(video_idx).name]);
+                    playlist(video_idx).startTime = toc(tStart); % saves time stamp to playlist
+                    playlist(video_idx).startFrame = saved_frames_counter + 1; % saves start frame to playlist
                     playFlag = 1; % marks next time to do a black screen
                     tLast_play = idx; % saves the index of the last time found
                     videosPlayed = videosPlayed + 1; % increase number of videos played counter
@@ -307,13 +311,13 @@ while(viewer_is_running) % main loop
                 
                 try
                     app.Status1.FontColor = [0.29,0.58,0.07]; % dark green
-                    app.Status1.Value = sprintf('%s', ['Playing video: ', num2str(j), ' / ', num2str(list_length), '.']);
+                    app.Status1.Value = sprintf('%s', ['Playing video: ', num2str(video_idx), ' / ', num2str(list_length), '.']);
                 catch
                 end
                 
-                v.play([playlist(j).folder, '\', playlist(j).name]);
-                playlist(j).startTime = toc(tStart); % saves time stamp to playlist
-                playlist(j).startFrame = saved_frames_counter + 1; % saves start frame to playlist
+                v.play([playlist(video_idx).folder, '\', playlist(video_idx).name]);
+                playlist(video_idx).startTime = toc(tStart); % saves time stamp to playlist
+                playlist(video_idx).startFrame = saved_frames_counter + 1; % saves start frame to playlist
                 playFlag = 1; % marks next time to do a black screen
                 tLast_play = idx; % saves the index of the last time found
                 videosPlayed = videosPlayed + 1; % increase number of videos played counter
@@ -326,15 +330,14 @@ while(viewer_is_running) % main loop
             
             err = status(app, 'Displaying black screen.', 'g', 1, 0);
             v.play('black.png'); % display black screen
-            playlist(j).endTime = toc(tStart); % saves time stamp to playlist
-            playlist(j).endFrame = saved_frames_counter; % saves end frame to playlist
-            % IRViewer.trigger_shutter_flag(); % trigger flag (temperature drift reset)
-            j = j + 1; % new line at playlist structure
+            playlist(video_idx).endTime = toc(tStart); % saves time stamp to playlist
+            playlist(video_idx).endFrame = saved_frames_counter; % saves end frame to playlist
+            video_idx = video_idx + 1; % new line at playlist structure
             playFlag = 0; % marks next time to play a video
             tLast_play = idx; % saves the index of the last time found
             
-            if j <= length(playlist) && properties.play_mode == 0
-                properties.playTime = playlist(j).duration; % save length of next video - if exists
+            if video_idx <= length(playlist) && properties.play_mode == 0
+                properties.playTime = playlist(video_idx).duration; % save length of next video - if exists
             end
             
             if properties.popup == 1 && feedback.status == 0 % if popup is desired - get location and call function
@@ -346,23 +349,22 @@ while(viewer_is_running) % main loop
             end
             
             if properties.saveONblack == 1 && properties.save_data == 1 % save buffer data
-                
-                err = save_buffer(app, properties, filename, buffer_VIS, ...
-                    buffer_IR, saveObject, buff_idx); % update data to mat file
 
-                % re-create matrices:
+                err = save_buffer(app, properties, filename, playlist, buffer_VIS, buffer_IR, video_idx-1, buff_idx); % update data to mat file
+                %{
+                % re-create matrices to delete data: (possible consider removing)
                 if properties.VIS_camera == 1 && properties.gray == 1
-                    buffer_VIS(res_A, res_B, properties.allocation) = 0; % gray
-                else
-                    buffer_VIS(res_A, res_B, 3, properties.allocation) = 0; % RGB
-                end
-
-                if properties.IR_camera == 1 && properties.tempORcolor == 1
-                    buffer_IR(288, 382, properties.allocation) = 0;
-                else
-                    buffer_IR(288, 382, 3, properties.allocation) = 0;
+                    buffer_VIS = zeros(res_A, res_B, str2double(properties.allocation),'uint8'); % gray
+                elseif properties.VIS_camera == 1 && properties.gray == 0
+                    buffer_VIS = zeros(res_A, res_B, 3, str2double(properties.allocation),'uint8'); % color
                 end
                 
+                if properties.IR_camera == 1 && properties.tempORcolor == 1
+                    buffer_IR = zeros(288, 382, str2double(properties.allocation),'single'); % temperature
+                elseif properties.IR_camera == 1 && properties.tempORcolor == 0
+                    buffer_IR = zeros(288, 382, 3, str2double(properties.allocation),'single'); % psaudo-color
+                end
+                %}
                 buff_idx = 0;
                 
             end
@@ -383,27 +385,7 @@ while(viewer_is_running) % main loop
         
     end
     
-    if t(idx) - t(tLast_display) >= 1000 % checks if elpased time is larger then 1 sec
-        FPS(1,q) = frameCount;
-        FPS(2,q) = (t(idx) / 1000);
-        
-        try
-            if properties.dispCWstatus == 1
-                plot(app.UIAxes, FPS(1,:), '-r'); % updates FPS graph
-            end
-            
-            app.Status2.Text = sprintf('%s', num2str(t(idx) / 1000)); % updates elapsed time
-        catch
-        end
-        q = q + 1;
-        frameCount = 0; % reset the frames counter
-        tLast_display = idx; % saves the index of the last time found
-        
-        if properties.playVideofiles == 1 && properties.verifyFullscreen == 1
-            v.Fullscreen = 'on'; % makes VLC player fullscreen
-        end
-    end
-    
+    %% Force end
     if properties.force_end == 1
         
         if properties.force_end_seconds == 1 && t(idx) - t(1) >= properties.force_end_period * 1000 ||...
@@ -413,10 +395,39 @@ while(viewer_is_running) % main loop
         
     end
     
+    %% Elpased time is larger then 1 sec
+    if t(idx) - t(tLast_display) >= 1000 % checks if elpased time is larger then 1 sec
+        fps(FPS_idx,1) = frameCount;
+        fps(FPS_idx,2) = (t(idx) / 1000);
+        
+        if properties.playVideofiles == 1 && viewer_is_running == 1 && playFlag == 1
+            fps(FPS_idx,3) = video_idx;
+        end
+        
+        try
+            
+            app.FPS_status.Text = sprintf('%s', num2str(fps(FPS_idx,1))); % updates frame rate
+            app.Status2.Text = sprintf('%s', num2str(t(idx) / 1000)); % updates elapsed time
+            
+        catch
+        end
+        
+        FPS_idx = FPS_idx + 1;
+        frameCount = 0; % reset the frames counter
+        tLast_display = idx; % saves the index of the last time found
+        
+        if properties.playVideofiles == 1 && properties.verifyFullscreen == 1
+            v.Fullscreen = 'on'; % makes sure VLC player is at fullscreen mode (every second)
+        end
+    end
+    
+    %% Increase counters
+    
     frameCount = frameCount + 1;
     idx = idx + 1;
     
-end
+end % end main loop
+
 %% Adds data to the saved file
 
 if properties.playVideofiles == 1 && err ~= 1
@@ -429,8 +440,14 @@ if properties.save_data == 1 && err ~= 1
     
     try
         
-        err = save_parameters(properties, filename, t, FPS, playlist); % saves recording parameters
-        err = save_buffer(app, properties, filename, buffer_VIS, buffer_IR, saveObject, buff_idx);
+        err = save_parameters(properties, filename, t, fps, playlist); % saves recording parameters
+        err = save_buffer(app, properties, filename, playlist, buffer_VIS, buffer_IR, video_idx-1, buff_idx); % update data to mat file
+        
+        if buff_idx ~= 0 && properties.saveONblack == 1 && properties.playVideofiles == 1
+            status(app, 'Some data of the last video may be lost (buff_idx ~= 0).', 'r', 1, 0);
+            err = 1;
+            print('buff_idx ~= 0'); 
+        end
         
         try
             app.Status1.FontColor = [0.29,0.58,0.07]; % dark green
