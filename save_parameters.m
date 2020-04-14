@@ -62,7 +62,7 @@ try
         properties.play_list_fields = ["File Name", "Duration", "Start time", "End time", "start frame", "end frame", "AVG FPS"];    
         
     end
-    
+    properties.fps = fps;
     properties.t = t';
     properties.frame_rate = properties.constantFrameRate;
     properties.fps_fields = ["FPS", "elapsed time (sec)", "played video number (zero is black screen)"];

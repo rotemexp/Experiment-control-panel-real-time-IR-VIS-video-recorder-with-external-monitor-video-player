@@ -44,9 +44,9 @@ end
 if properties.IR_camera == 1
     
     if ndims(buffer_IR) == 3
-        buffer_IR = buffer_VIS(:,:,1:buff_idx);
+        buffer_IR = buffer_IR(:,:,1:buff_idx);
     elseif ndims(buffer_IR) == 4
-        buffer_IR = buffer_VIS(:,:,:,1:buff_idx);
+        buffer_IR = buffer_IR(:,:,:,1:buff_idx);
     end
     
     eval(['IR_', num2str(vid_name), ' = buffer_IR;']); % get the desired signal
