@@ -20,15 +20,26 @@ if exist('files','var') == 1 && isempty(files) == 0
         files(i).idx = str2num(['uint8(',token,')']);
         
         if strcmp(remain,'.mp4') == 1 || strcmp(remain,'.avi') == 1 || strcmp(remain,'.mov') == 1 ...
-                 || strcmp(remain,'.mts') == 1 || strcmp(remain,'.mpg') == 1 || strcmp(remain,'.wmv') == 1 ...
-                  || strcmp(remain,'.mkv') == 1
+                || strcmp(remain,'.mts') == 1 || strcmp(remain,'.mpg') == 1 || strcmp(remain,'.wmv') == 1 ...
+                || strcmp(remain,'.mkv') == 1
             vidObj = VideoReader([files(i).folder, '\', files(i).name]); % open video file
             files(i).duration = vidObj.Duration; % saves it's duration to the structure
         else % case file is an image file
             files(i).duration = 0;
+            files(i).idx = i;
         end
     end
     
+    [~, idx] = sort([files.idx]); % get sorted order indexes
+    list = files(idx); % sort by indexes 
+    
+else
+    list = 0;
+end
+
+end
+
+%{
     j = 1;
     for i=1:len % arranging file structure by file name in ascending way
         [~, col] = find([files.idx] == i);
@@ -47,13 +58,11 @@ if exist('files','var') == 1 && isempty(files) == 0
             break;
         end
     end
-else
-    list = 0;
-end
-
-[r, c] = size(list);
+        
+        [r, c] = size(list);
 if c > r
     list = list'; % case images, need to transpose list
 end
+        
+%}
 
-end

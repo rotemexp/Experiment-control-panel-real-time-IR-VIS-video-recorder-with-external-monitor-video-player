@@ -37,7 +37,7 @@ if properties.VIS_camera == 1 && err == 0
     try
         err = status(app, 'Connecting to VIS camera...', 'g', 1, 0);
         cam = webcam(properties.camera2connect);
-        cam.Resolution = properties.camera_resolution;
+        cam.Resolution = [num2str(properties.VIS_resolution(2)) ,'x', num2str(properties.VIS_resolution(1))];
         viewer_is_running = 1; % ok to run frame grabber loop
     catch
         err = status(app, 'Error connecting to VIS camera.', 'r', 1, 1);
@@ -96,25 +96,29 @@ if properties.save_data == 1 && err == 0
     %try
         
         % get resulution values:
-        res_A = str2double(extractAfter(properties.camera_resolution,"x"));
-        res_B = str2double(extractBefore(properties.camera_resolution,"x"));
+        %res_A = str2double(extractAfter(properties.VIS_resolution,"x"));
+        %res_B = str2double(extractBefore(properties.VIS_resolution,"x"));
         
         % Allocates memory:
         if properties.VIS_camera == 1 && properties.gray == 1
-            buffer_VIS = zeros(res_A, res_B, str2double(properties.allocation),'uint8'); % gray
+            buffer_VIS = zeros(properties.VIS_resolution(1), properties.VIS_resolution(2), str2double(properties.allocation),'uint8'); % gray
         elseif properties.VIS_camera == 1 && properties.gray == 0
-            buffer_VIS = zeros(res_A, res_B, 3, str2double(properties.allocation),'uint8'); % color
+            buffer_VIS = zeros(properties.VIS_resolution(1), properties.VIS_resolution(2), 3, str2double(properties.allocation),'uint8'); % color
         else
             buffer_VIS = 0;
         end
         
         if properties.IR_camera == 1 && properties.tempORcolor == 1
-            buffer_IR = zeros(288, 382, str2double(properties.allocation),'single'); % temperature
+            res = get_IR_resolution(properties, IRInterface); % getting the IR camera resolution
+            buffer_IR = zeros(res(1), res(2), str2double(properties.allocation),'single'); % temperature
         elseif properties.IR_camera == 1 && properties.tempORcolor == 0
-            buffer_IR = zeros(288, 382, 3, str2double(properties.allocation),'single'); % psaudo-color
+            res = get_IR_resolution(properties, IRInterface); % getting the IR camera resolution
+            buffer_IR = zeros(res(1), res(2), 3, str2double(properties.allocation),'single'); % psaudo-color
         else
             buffer_IR = 0;
         end
+        
+        properties.IR_resolution = res;
         
         [~, dir_feedback, ~] = mkdir ('Recordings'); % creates dir if it doesn't exist yet
                
@@ -193,8 +197,6 @@ while(viewer_is_running) % main loop
         t_seg(1) = t_seg(2); % updates last time stamp
     end
     
-    t(idx) = (round(toc(tStart)*1000)); % saves time delta
-    
     %% Get VIS / IR frame from camera
     
     if properties.VIS_camera == 1 % if needs to get frame from VIS camera
@@ -209,6 +211,8 @@ while(viewer_is_running) % main loop
         end
         
     end
+    
+    t(idx) = (round(toc(tStart)*1000)); % saves time delta
     
     if properties.IR_camera == 1 % if needs to get frame from IR camera
         
@@ -280,15 +284,14 @@ while(viewer_is_running) % main loop
         
         if properties.save_data == 1 && properties.popup == 1 && feedback.status == 1 % re-open popup in case it was close using X not using OK button
             if ishandle(popup_fig) == 0
-                popup_fig = popup_fig_finder(true); % opens popup UI figure with always-on-top mode
-                popup_fig.Position = str2num(app.PopuppositionEditField.Value); % locate pop-up figure where it should be
+                popup_fig = popup_fig_finder(app, true); % opens popup UI figure with always-on-top mode
             end
         end
         
         if (t(idx) - t(tLast_play) >= properties.pauseTime*1000 && playFlag == 0 &&...
                 videosPlayed < list_length) || (playFlag == 0 && videosPlayed == 0) % checks if it's time to play a video
             
-            if properties.save_data == 1 && properties.popup == 1
+            if properties.popup == 1 % case need to wait for popup feedback 
                 
                 if feedback.status == 0
                     
@@ -342,8 +345,8 @@ while(viewer_is_running) % main loop
             
             if properties.popup == 1 && feedback.status == 0 % if popup is desired - get location and call function
                 
-                popup_fig = popup_fig_finder(true); % opens popup UI figure with always-on-top mode
-                popup_fig.Position = str2num(app.PopuppositionEditField.Value); % locate pop-up figure where it should be
+                popup_fig = popup_fig_finder(app, true); % opens popup UI figure with always-on-top mode
+                
                 feedback.status = 1;
                 
             end
@@ -441,13 +444,15 @@ if properties.save_data == 1 && err ~= 1
     try
         
         err = save_parameters(properties, filename, t, fps, playlist); % saves recording parameters
-        err = save_buffer(app, properties, filename, playlist, buffer_VIS, buffer_IR, video_idx-1, buff_idx); % update data to mat file
+        err = save_buffer(app, properties, filename, playlist, buffer_VIS, buffer_IR, video_idx, buff_idx); % update data to mat file
         
+        %{
         if buff_idx ~= 0 && properties.saveONblack == 1 && properties.playVideofiles == 1
             status(app, 'Some data of the last video may be lost (buff_idx ~= 0).', 'r', 1, 0);
             err = 1;
             print('buff_idx ~= 0'); 
         end
+        %}
         
         try
             app.Status1.FontColor = [0.29,0.58,0.07]; % dark green
