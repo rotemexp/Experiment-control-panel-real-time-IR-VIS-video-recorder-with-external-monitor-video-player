@@ -5,9 +5,9 @@ try
     if properties.save_data == 1 && properties.popup == 1 % case there was a questions pop-up
         
         global feedback;
-        properties.feel = feedback.feel;
-        properties.wake = feedback.wake;
-        properties.posneg = feedback.posneg;
+        properties.feel = uint8(feedback.feel);
+        properties.wake = uint8(feedback.wake);
+        properties.posneg = uint8(feedback.posneg);
         
     end
     
