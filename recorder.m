@@ -16,20 +16,20 @@ err = 0; % declare no errors so far
 
 if properties.IR_camera == 1
     %try
-        err = status(app, 'Connecting to IR camera...', 'g', 1, 0);
-        
-        IRInterface = EvoIRMatlabInterface;
-        IRViewer = EvoIRViewer; % initialize the viewer
-        close(1); % closes the Evocortex special window, so a new "regular" figure window will be opnened.
-        viewer_is_running = 1; % ok to run frame grabber loop
-        
-        if ~IRInterface.connect()
-            close all;
-            err = status(app, 'Error connecting to IR camera.', 'r', 1, 1);
-        end
-        
+    err = status(app, 'Connecting to IR camera...', 'g', 1, 0);
+    
+    IRInterface = EvoIRMatlabInterface;
+    IRViewer = EvoIRViewer; % initialize the viewer
+    close(1); % closes the Evocortex special window, so a new "regular" figure window will be opnened.
+    viewer_is_running = 1; % ok to run frame grabber loop
+    
+    if ~IRInterface.connect()
+        close all;
+        err = status(app, 'Error connecting to IR camera.', 'r', 1, 1);
+    end
+    
     %catch
-        %err = status(app, 'Error connecting to IR camera.', 'r', 1, 1);
+    %err = status(app, 'Error connecting to IR camera.', 'r', 1, 1);
     %end
 end
 %% Initializing VIS camera
@@ -94,38 +94,42 @@ if properties.save_data == 1 && err == 0
     end
     
     %try
+    
+    % get resulution values:
+    %res_A = str2double(extractAfter(properties.VIS_resolution,"x"));
+    %res_B = str2double(extractBefore(properties.VIS_resolution,"x"));
+    
+    % Allocates memory:
+    if properties.VIS_camera == 1 && properties.gray == 1
+        buffer_VIS = zeros(properties.VIS_resolution(1), properties.VIS_resolution(2), str2double(properties.allocation),'uint8'); % gray
+    elseif properties.VIS_camera == 1 && properties.gray == 0
+        buffer_VIS = zeros(properties.VIS_resolution(1), properties.VIS_resolution(2), 3, str2double(properties.allocation),'uint8'); % color
+    else
+        buffer_VIS = 0;
+    end
+    
+    
+    if properties.IR_camera == 1
         
-        % get resulution values:
-        %res_A = str2double(extractAfter(properties.VIS_resolution,"x"));
-        %res_B = str2double(extractBefore(properties.VIS_resolution,"x"));
-        
-        % Allocates memory:
-        if properties.VIS_camera == 1 && properties.gray == 1
-            buffer_VIS = zeros(properties.VIS_resolution(1), properties.VIS_resolution(2), str2double(properties.allocation),'uint8'); % gray
-        elseif properties.VIS_camera == 1 && properties.gray == 0
-            buffer_VIS = zeros(properties.VIS_resolution(1), properties.VIS_resolution(2), 3, str2double(properties.allocation),'uint8'); % color
-        else
-            buffer_VIS = 0;
-        end
-        
-        if properties.IR_camera == 1 && properties.tempORcolor == 1
-            res = get_IR_resolution(properties, IRInterface); % getting the IR camera resolution
-            buffer_IR = zeros(res(1), res(2), str2double(properties.allocation),'single'); % temperature
-        elseif properties.IR_camera == 1 && properties.tempORcolor == 0
-            res = get_IR_resolution(properties, IRInterface); % getting the IR camera resolution
-            buffer_IR = zeros(res(1), res(2), 3, str2double(properties.allocation),'single'); % psaudo-color
-        else
-            buffer_IR = 0;
-        end
-        
+        res = get_IR_resolution(properties, IRInterface); % getting the IR camera resolution
         properties.IR_resolution = res;
         
-        [~, dir_feedback, ~] = mkdir ('Recordings'); % creates dir if it doesn't exist yet
-               
-        save(filename,'-v7.3','properties'); % creates the data file and stores first variable in it
-
+        if properties.tempORcolor == 1
+            buffer_IR = zeros(res(1), res(2), str2double(properties.allocation),'single'); % temperature
+        elseif properties.tempORcolor == 0
+            buffer_IR = zeros(res(1), res(2), 3, str2double(properties.allocation),'single'); % psaudo-color
+        end
+        
+    else
+        buffer_IR = 0;
+    end
+    
+    [~, dir_feedback, ~] = mkdir ('Recordings'); % creates dir if it doesn't exist yet
+    
+    save(filename,'-v7.3','properties'); % creates the data file and stores first variable in it
+    
     %catch
-     %   err = status(app, 'Error creating and saving data file, program ends.', 'r', 1, 1);
+    %   err = status(app, 'Error creating and saving data file, program ends.', 'r', 1, 1);
     %end
     
 end
@@ -151,18 +155,18 @@ if ~exist('playlist', 'var')
     playlist = 0;
 end
 
-if properties.playTime == 0 && properties.playVideofiles == 1% case auto mode is on
+if properties.playTime == 0 && properties.playVideofiles == 1 && err == 0 % case auto mode is on
     properties.play_mode = 0;
     properties.playTime = playlist(video_idx).duration; % save length of first video
 else
     properties.play_mode = 1;
 end
 
-if properties.crop_cor ~= 0
+if properties.crop_cor ~= 0 && err == 0
     crop_cor = str2num(properties.crop_cor); % case should crop VIS image
 end
 
-if properties.VIS_camera == 0 && properties.IR_camera == 0
+if properties.VIS_camera == 0 && properties.IR_camera == 0 && err == 0
     err = status(app, 'No camera was selected.', 'r', 1, 1);
 end
 
@@ -291,7 +295,7 @@ while(viewer_is_running) % main loop
         if (t(idx) - t(tLast_play) >= properties.pauseTime*1000 && playFlag == 0 &&...
                 videosPlayed < list_length) || (playFlag == 0 && videosPlayed == 0) % checks if it's time to play a video
             
-            if properties.popup == 1 % case need to wait for popup feedback 
+            if properties.popup == 1 % case need to wait for popup feedback
                 
                 if feedback.status == 0
                     
@@ -352,7 +356,7 @@ while(viewer_is_running) % main loop
             end
             
             if properties.saveONblack == 1 && properties.save_data == 1 % save buffer data
-
+                
                 err = save_buffer(app, properties, filename, playlist, buffer_VIS, buffer_IR, video_idx-1, buff_idx); % update data to mat file
                 %{
                 % re-create matrices to delete data: (possible consider removing)
@@ -450,7 +454,7 @@ if properties.save_data == 1 && err ~= 1
         if buff_idx ~= 0 && properties.saveONblack == 1 && properties.playVideofiles == 1
             status(app, 'Some data of the last video may be lost (buff_idx ~= 0).', 'r', 1, 0);
             err = 1;
-            print('buff_idx ~= 0'); 
+            print('buff_idx ~= 0');
         end
         %}
         
