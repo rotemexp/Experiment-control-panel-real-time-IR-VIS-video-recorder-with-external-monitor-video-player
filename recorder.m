@@ -136,7 +136,7 @@ end
 
 %% Setting frame loop parameters
 
-fps = uint16(zeros(2,3));
+timing = uint16(zeros(2,3));
 idx = 1;
 buff_idx = 0;
 saved_frames_counter = 0;
@@ -404,16 +404,16 @@ while(viewer_is_running) % main loop
     
     %% Elpased time is larger then 1 sec
     if t(idx) - t(tLast_display) >= 1000 % checks if elpased time is larger then 1 sec
-        fps(FPS_idx,1) = frameCount;
-        fps(FPS_idx,2) = (t(idx) / 1000);
+        timing(FPS_idx,1) = (t(idx) / 1000);
+        timing(FPS_idx,2) = frameCount;
         
         if properties.playVideofiles == 1 && viewer_is_running == 1 && playFlag == 1
-            fps(FPS_idx,3) = video_idx;
+            timing(FPS_idx,3) = video_idx;
         end
         
         try
             
-            app.FPS_status.Text = sprintf('%s', num2str(fps(FPS_idx,1))); % updates frame rate
+            app.FPS_status.Text = sprintf('%s', num2str(timing(FPS_idx,1))); % updates frame rate
             app.Status2.Text = sprintf('%s', num2str(t(idx) / 1000)); % updates elapsed time
             
         catch
@@ -426,6 +426,7 @@ while(viewer_is_running) % main loop
         if properties.playVideofiles == 1 && properties.verifyFullscreen == 1
             v.Fullscreen = 'on'; % makes sure VLC player is at fullscreen mode (every second)
         end
+        
     end
     
     %% Increase counters
@@ -447,7 +448,7 @@ if properties.save_data == 1 && err ~= 1
     
     try
         
-        err = save_parameters(properties, filename, t, fps, playlist); % saves recording parameters
+        err = save_parameters(properties, filename, t, timing, playlist); % saves recording parameters
         err = save_buffer(app, properties, filename, playlist, buffer_VIS, buffer_IR, video_idx, buff_idx); % update data to mat file
         
         %{
