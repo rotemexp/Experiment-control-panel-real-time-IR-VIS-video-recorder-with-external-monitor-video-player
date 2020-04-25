@@ -34,14 +34,19 @@ if properties.IR_camera == 1
 end
 %% Initializing VIS camera
 if properties.VIS_camera == 1 && err == 0
-    try
+    %try
         err = status(app, 'Connecting to VIS camera...', 'g', 1, 0);
         cam = webcam(properties.camera2connect);
         cam.Resolution = [num2str(properties.VIS_resolution(2)) ,'x', num2str(properties.VIS_resolution(1))];
         viewer_is_running = 1; % ok to run frame grabber loop
-    catch
-        err = status(app, 'Error connecting to VIS camera.', 'r', 1, 1);
-    end
+        
+        %clear('cam2');
+        %cam2 = webcam('HD USB Camera');
+        %cam2.Resolution = '320x240';
+        
+   % catch
+    %    err = status(app, 'Error connecting to VIS camera.', 'r', 1, 1);
+    %end
 end
 
 %% Initializing VLC player and playlist files
@@ -104,6 +109,9 @@ if properties.save_data == 1 && err == 0
         buffer_VIS = zeros(properties.VIS_resolution(1), properties.VIS_resolution(2), str2double(properties.allocation),'uint8'); % gray
     elseif properties.VIS_camera == 1 && properties.gray == 0
         buffer_VIS = zeros(properties.VIS_resolution(1), properties.VIS_resolution(2), 3, str2double(properties.allocation),'uint8'); % color
+        
+       % buffer_VIS2 = zeros(240, 320, 3, str2double(properties.allocation),'uint8'); % color
+        
     else
         buffer_VIS = 0;
     end
@@ -209,6 +217,7 @@ while(viewer_is_running) % main loop
             frame_VIS = rgb2gray(snapshot(cam)); % get imgage from VIS camera if needed and transform to gray
         else
             frame_VIS = snapshot(cam); % get imgage from VIS camera if needed
+            %frame_VIS2 = snapshot(cam2); % get imgage from VIS camera if needed
         end
         if properties.crop_cor ~= 0
             frame_VIS = imcrop(frame_VIS,crop_cor); % cropping the frame
@@ -243,6 +252,7 @@ while(viewer_is_running) % main loop
                     buffer_VIS(:,:,buff_idx) = frame_VIS; % storing VIS camera gray image
                 else
                     buffer_VIS(:,:,:,buff_idx) = frame_VIS; % storing VIS camera RGB image
+                    %buffer_VIS2(:,:,:,buff_idx) = frame_VIS2; % storing VIS camera RGB image
                 end
             end
             
@@ -413,7 +423,7 @@ while(viewer_is_running) % main loop
         
         try
             
-            app.FPS_status.Text = sprintf('%s', num2str(timing(FPS_idx,1))); % updates frame rate
+            app.FPS_status.Text = sprintf('%s', num2str(timing(FPS_idx,2))); % updates frame rate
             app.Status2.Text = sprintf('%s', num2str(t(idx) / 1000)); % updates elapsed time
             
         catch

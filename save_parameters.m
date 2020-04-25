@@ -1,4 +1,4 @@
-function err = save_parameters(properties, filename, t, fps, playlist)
+function err = save_parameters(properties, filename, t, raw_timing, playlist)
 
 try
     
@@ -14,14 +14,14 @@ try
     if properties.playVideofiles == 1
         
         list_length = length(playlist);
-        fps(end,3) = 0; % fixing last index error
-        vid_num = fps(:,3);
-        
+        timing = raw_timing(raw_timing(:,3)~=0,:); % drop the zeros (zeros represent black screen while popup window still open)
+        vid_list = timing(:,3);
+
         for i=1:list_length
             
-            idxes = uint16(find(vid_num == i)); % find indexes of video number i
-            idxes = idxes(2:end-1); % drop the first and the last value for the average calculation
-            mean_fps(i) = mean(fps(idxes,1)); % calculate the average FPS
+            idxes = uint16(find(vid_list == i)); % find indexes of video number i
+            idxes = idxes(2:end); % drops the first FPS value!! (useally at the first second the FPS drops a little so i decided not to include it in the average FPS calculation)
+            mean_fps(i) = mean(timing(idxes,2)); % calculate the average FPS
             
         end
         
@@ -52,7 +52,10 @@ try
                 play_list(i,6) = 0; % case endTime is empty due to program ends before all videos were played
             end
             
-            play_list(i,7) = single(mean_fps(i));
+            play_list(i,7) = playlist(i).endFrame - playlist(i).startFrame + 1;
+            playlist(i).frames_count = playlist(i).endFrame - playlist(i).startFrame + 1;
+            
+            play_list(i,8) = single(mean_fps(i));
             playlist(i).AVG_FPS = mean_fps(i);
             
         end
@@ -62,10 +65,12 @@ try
         properties.play_list_fields = ["File Name", "Duration", "Start time", "End time", "start frame", "end frame", "AVG FPS"];    
         
     end
-    properties.fps = fps;
+    
+    properties.raw_timing = raw_timing;
+    properties.timing = timing;
     properties.t = t';
     properties.frame_rate = properties.constantFrameRate;
-    properties.fps_fields = ["FPS", "elapsed time (sec)", "played video number (zero is black screen)"];
+    properties.timing_fields = ["FPS", "elapsed time (sec)", "played video number (zero is black screen)"];
     
     save(filename,'properties','-append'); % adds variables to the saved data file
     
