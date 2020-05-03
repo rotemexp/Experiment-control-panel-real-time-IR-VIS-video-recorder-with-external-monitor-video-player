@@ -25,6 +25,8 @@ try
             
         end
         
+        properties.timing = timing;
+        
         for i=1:list_length % creates double array for relevant data
             
             play_list(i,1) = str2double(extractBefore(playlist(i).name,"."));
@@ -67,7 +69,6 @@ try
     end
     
     properties.raw_timing = raw_timing;
-    properties.timing = timing;
     properties.t = t';
     properties.frame_rate = properties.constantFrameRate;
     properties.timing_fields = ["FPS", "elapsed time (sec)", "played video number (zero is black screen)"];
