@@ -1,12 +1,22 @@
 function err = save_buffer(app, properties, filename, playlist, buffer_VIS, buffer_IR, vid_num, buff_idx)
 
-err = status(app, 'Saving data to file...', 'g', 1, 0);
-
 if buff_idx == 0
     return;
 end
 
 %try
+
+if properties.flag_IR_camera_on_black == 1 && properties.IR_camera == 1
+    %err = status(app, 'Saving data to file & performing IR camera flag (Temp. drift reset)...', 'g', 1, 0);
+    app.Status1.FontColor = [0.29,0.58,0.07]; % dark green
+    app.Status1.Value = sprintf('%s', ['Saving ', num2str(buff_idx), ' frames to file & performing IR camera flag (Temp. drift reset)...']);
+else
+    %err = status(app, 'Saving data to file...', 'g', 1, 0);
+    app.Status1.FontColor = [0.29,0.58,0.07]; % dark green
+    app.Status1.Value = sprintf('%s', ['Saving ', num2str(buff_idx), ' frames to file...']);
+end
+
+drawnow(); % updates callback functions
 
 if properties.playVideofiles == 1 && properties.saveONblack == 1 && properties.save_vid_by_order == 0
 
@@ -19,13 +29,9 @@ if properties.playVideofiles == 1 && properties.saveONblack == 1 && properties.s
     end
     
 elseif properties.playVideofiles == 1 && properties.saveONblack == 0
-    
     vid_name = 0;
-    
 else
-    
     vid_name = vid_num; % case there only one data file
-    
 end
 
 if properties.VIS_camera == 1

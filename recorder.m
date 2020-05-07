@@ -38,9 +38,9 @@ if properties.VIS_camera == 1 && err == 0
         err = status(app, 'Connecting to VIS camera...', 'g', 1, 0);
         cam = webcam(properties.camera2connect);
         cam.Resolution = [num2str(properties.VIS_resolution(2)) ,'x', num2str(properties.VIS_resolution(1))];
-        viewer_is_running = 1; % ok to run frame grabber loop    
+        viewer_is_running = 1; % ok to run frame grabber loop
     catch
-       err = status(app, 'Error connecting to VIS camera.', 'r', 1, 1);
+        err = status(app, 'Error connecting to VIS camera.', 'r', 1, 1);
     end
 end
 
@@ -94,37 +94,37 @@ if properties.save_data == 1 && err == 0
     end
     
     try
-    
-    % Allocates memory:
-    if properties.VIS_camera == 1 && properties.gray == 1
-        buffer_VIS = zeros(properties.VIS_resolution(1), properties.VIS_resolution(2), str2double(properties.allocation),'uint8'); % gray
-    elseif properties.VIS_camera == 1 && properties.gray == 0
-        buffer_VIS = zeros(properties.VIS_resolution(1), properties.VIS_resolution(2), 3, str2double(properties.allocation),'uint8'); % color
-    else
-        buffer_VIS = 0;
-    end
-    
-    if properties.IR_camera == 1
         
-        res = get_IR_resolution(properties, IRInterface); % getting the IR camera resolution
-        properties.IR_resolution = res;
-        
-        if properties.tempORcolor == 1
-            buffer_IR = zeros(res(1), res(2), str2double(properties.allocation),'single'); % temperature
-        elseif properties.tempORcolor == 0
-            buffer_IR = zeros(res(1), res(2), 3, str2double(properties.allocation),'single'); % psaudo-color
+        % Allocates memory:
+        if properties.VIS_camera == 1 && properties.gray == 1
+            buffer_VIS = zeros(properties.VIS_resolution(1), properties.VIS_resolution(2), str2double(properties.allocation),'uint8'); % gray
+        elseif properties.VIS_camera == 1 && properties.gray == 0
+            buffer_VIS = zeros(properties.VIS_resolution(1), properties.VIS_resolution(2), 3, str2double(properties.allocation),'uint8'); % color
+        else
+            buffer_VIS = 0;
         end
         
-    else
-        buffer_IR = 0;
-    end
-    
-    [~, dir_feedback, ~] = mkdir ('Recordings'); % creates dir if it doesn't exist yet
-    
-    save(filename,'-v7.3','properties'); % creates the data file and stores first variable in it
-    
+        if properties.IR_camera == 1
+            
+            res = get_IR_resolution(properties, IRInterface); % getting the IR camera resolution
+            properties.IR_resolution = res;
+            
+            if properties.tempORcolor == 1
+                buffer_IR = zeros(res(1), res(2), str2double(properties.allocation),'single'); % temperature
+            elseif properties.tempORcolor == 0
+                buffer_IR = zeros(res(1), res(2), 3, str2double(properties.allocation),'single'); % psaudo-color
+            end
+            
+        else
+            buffer_IR = 0;
+        end
+        
+        [~, dir_feedback, ~] = mkdir ('Recordings'); % creates dir if it doesn't exist yet
+        
+        save(filename,'-v7.3','properties'); % creates the data file and stores first variable in it
+        
     catch
-       err = status(app, 'Error creating and saving data file, program ends.', 'r', 1, 1);
+        err = status(app, 'Error creating and saving data file, program ends.', 'r', 1, 1);
     end
     
 end
@@ -290,6 +290,10 @@ while(viewer_is_running) % main loop
         if (t(idx) - t(tLast_play) >= properties.pauseTime*1000 && playFlag == 0 &&...
                 videosPlayed < list_length) || (playFlag == 0 && videosPlayed == 0) % checks if it's time to play a video
             
+            %properties.flag_IR_camera_on_black == 1 && properties.IR_camera == 1
+            %    IRViewer.trigger_shutter_flag(); % triggers flag (temperature drift reset)
+            % end
+            
             if properties.popup == 1 % case need to wait for popup feedback
                 
                 if feedback.status == 0
@@ -338,23 +342,22 @@ while(viewer_is_running) % main loop
             playFlag = 0; % marks next time to play a video
             tLast_play = idx; % saves the index of the last time found
             
+            if properties.flag_IR_camera_on_black == 1 && properties.IR_camera == 1
+                IRViewer.trigger_shutter_flag(); % triggers flag (temperature drift reset)
+            end
+            
             if video_idx <= length(playlist) && properties.play_mode == 0
                 properties.playTime = playlist(video_idx).duration; % save length of next video - if exists
             end
             
             if properties.popup == 1 && feedback.status == 0 % if popup is desired - get location and call function
-                
                 popup_fig = popup_fig_finder(app, true); % opens popup UI figure with always-on-top mode
-                
                 feedback.status = 1;
-                
             end
             
             if properties.saveONblack == 1 && properties.save_data == 1 % save buffer data
-                
                 err = save_buffer(app, properties, filename, playlist, buffer_VIS, buffer_IR, video_idx-1, buff_idx); % update data to mat file
                 buff_idx = 0;
-                
             end
             
         end
@@ -431,7 +434,7 @@ if properties.save_data == 1 && err ~= 1
         
         err = save_parameters(properties, filename, t, timing, playlist); % saves recording parameters
         err = save_buffer(app, properties, filename, playlist, buffer_VIS, buffer_IR, video_idx, buff_idx); % update data to mat file
- 
+        
         try
             app.Status1.FontColor = [0.29,0.58,0.07]; % dark green
             app.Status1.Value = sprintf('%s', ['File saved at: ',filename, ' successfully!']);
