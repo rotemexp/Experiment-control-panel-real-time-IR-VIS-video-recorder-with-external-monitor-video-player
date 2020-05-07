@@ -8,9 +8,9 @@
 extern "C" {
 #endif
 
-enum EvoIRFlagState { irFlagOpen, irFlagClose, irFlagOpening, irFlagClosing, irFlagError };
+typedef enum { irFlagOpen, irFlagClose, irFlagOpening, irFlagClosing, irFlagError } EvoIRFlagState;
 
-struct __IRDIRECTSDK_API__ EvoIRFrameMetadata
+typedef struct __IRDIRECTSDK_API__ EvoIRFrameMetadata
 {
   unsigned int counter;     /*!< Consecutively numbered for each received frame */
   unsigned int counterHW;   /*!< Hardware counter received from device, multiply with value returned by IRImager::getAvgTimePerFrame() to get a hardware timestamp */
@@ -20,7 +20,7 @@ struct __IRDIRECTSDK_API__ EvoIRFrameMetadata
   float tempChip;           /*!< Chip temperature */
   float tempFlag;           /*!< Shutter flag temperature */
   float tempBox;            /*!< Temperature inside camera housing */
-};
+} EvoIRFrameMetadata;
 
 
 #ifdef  __cplusplus

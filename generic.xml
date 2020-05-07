@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <imager xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
   <serial>0</serial>                     <!-- Provide serial number, if you attach more than one camera -->
-  <videoformatindex>0</videoformatindex> <!-- index of the used video format (USB enpoint) -->
+  <videoformatindex>1</videoformatindex> <!-- index of the used video format (USB enpoint) -->
   <formatspath>.\</formatspath>
   <!-- <calipath></calipath> -->
   <!-- Uncomment the following lines to specify user-defined parameters for the desired optic
@@ -17,7 +17,7 @@
   </temperature>
   <optics_text></optics_text>
   -->
-  <framerate>80.0</framerate>             <!-- scaled down frame rate, must be less or equal than camera frame rate -->
+  <framerate>100.0</framerate>             <!-- scaled down frame rate, must be less or equal than camera frame rate -->
   <bispectral>0</bispectral>              <!-- 0=only thermal sensor, 1=bispectral technology (only PI200/PI230) -->
   <autoflag>
     <enable>0</enable>
@@ -30,4 +30,5 @@
   <enable_extended_temp_range>0</enable_extended_temp_range> <!-- 0=Off, 1=On; Caution! Enables invalid extended temp range-->
   <buffer_queue_size>5</buffer_queue_size> <!-- internal buffer queue size -->
   <enable_high_precision>1</enable_high_precision> <!-- 0=Off, 1=On; Enables temperatures with more than 1 decimal places. Depends on used camera(IRImager::getTemprangeDecimal()).-->
+  <radial_distortion_correction>1</radial_distortion_correction> <!-- Distortion correction: 0=Off, 1=Normal, 2=Wide -->
 </imager>
