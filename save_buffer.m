@@ -1,6 +1,7 @@
 function err = save_buffer(app, properties, filename, playlist, buffer_VIS, buffer_IR, vid_num, buff_idx)
 
 if buff_idx == 0
+    err = 0;
     return;
 end
 
