@@ -1,4 +1,4 @@
-classdef main_v2_exported < matlab.apps.AppBase
+classdef main_v2 < matlab.apps.AppBase
 
     % Properties that correspond to app components
     properties (Access = public)
