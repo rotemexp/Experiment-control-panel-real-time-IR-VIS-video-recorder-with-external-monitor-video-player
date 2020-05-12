@@ -1,7 +1,7 @@
 # Thermal-Visible-face-videos-recorder-with-UI: 
 Thermal and Visible video recorder software, designed to work with up to 2 cameras - Infrared and visible.
 
-Run Main_V2.mlapp to start the program, screen shot available here:
+Run main_V2.m to start the program, screen shot available here:
 https://github.com/CallShaul/Experiment-control-panel---IR-VIS-camera-reconder-with-emotions-arousing-player/blob/master/Control%20panel%20image.PNG
 
 # Video analayzer for physiologicals signals extraction:
