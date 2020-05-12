@@ -69,7 +69,7 @@ if properties.playVideofiles == 1 && err == 0
         err = status(app, 'Error loading video files playlist.', 'r', 1, 1);
     end
     
-    if properties.do_not_record_on_black.Value == 0
+    if properties.do_not_record_on_black == 0
         black_record = 0; % save frames during the whole time
     else
         black_record = 1; % save frames ONLY when playing the videos
@@ -430,7 +430,7 @@ if properties.save_data == 1 && err ~= 1
     
     err = status(app, 'Saving data file...', 'g', 1, 0);
     
-    try
+    %try
         
         err = save_parameters(properties, filename, t, timing, playlist); % saves recording parameters
         err = save_buffer(app, properties, filename, playlist, buffer_VIS, buffer_IR, video_idx, buff_idx); % update data to mat file
@@ -442,10 +442,10 @@ if properties.save_data == 1 && err ~= 1
         catch
         end
         
-    catch
-        status(app, 'Error saving data file!!!', 'r', 1, 0);
-        err = 1;
-    end
+    %catch
+     %   status(app, 'Error saving data file!!!', 'r', 1, 0);
+     %   err = 1;
+    %end
     
 else
     if err == 0
