@@ -1,7 +1,7 @@
 function recorder(app, properties)
 clc;
 %% Set global variables
-
+%% Shaul
 global viewer_is_running; % initialize the main frame grabber loop as global variable
 global IRInterface; % initialize the interface as a global variable
 global feedback;
