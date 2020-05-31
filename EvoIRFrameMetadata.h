@@ -1,4 +1,12 @@
 
+/******************************************************************************
+ * Copyright (c) 2012-2020 All Rights Reserved, http://www.evocortex.com      *
+ *  Evocortex GmbH                                                            *
+ *  Emilienstr. 10                                                            *
+ *  90489 Nuremberg                                                           *
+ *  Germany                                                                   *
+ *****************************************************************************/
+
 #ifndef EVOIRFRAMEMETADATA_H_
 #define EVOIRFRAMEMETADATA_H_
 

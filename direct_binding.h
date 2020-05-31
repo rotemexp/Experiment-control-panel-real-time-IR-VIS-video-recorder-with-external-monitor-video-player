@@ -71,6 +71,21 @@ __IRDIRECTSDK_API__ int evo_irimager_terminate();
 __IRDIRECTSDK_API__ int evo_irimager_multi_terminate(const unsigned int camId);
 
 /**
+ * @brief Get the serial number of the connected camera
+ * @param[out] serial number of camera
+ * @return 0 on success, -1 on error
+ */
+__IRDIRECTSDK_API__ int evo_irimager_get_serial(unsigned long *serial);
+
+/**
+ * @brief Get the serial number of the connected camera for multiple cameras
+ * @param[in] camId Camera instance id  from init to apply this function
+ * @param[out] serial number of camera
+ * @return 0 on success, -1 on error
+ */
+__IRDIRECTSDK_API__ int evo_irimager_multi_get_serial(const unsigned int camId, unsigned long *serial);
+
+/**
  * @brief Accessor to image width and height
  * @param[out] w width
  * @param[out] h height
