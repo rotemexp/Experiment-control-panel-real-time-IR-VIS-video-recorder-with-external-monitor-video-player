@@ -3,7 +3,7 @@ Thermal and Visible video recorder software and player, designed to work with up
 
 Written for a combined reaserch of the psycology and the electrical engineering department at Ben Gurion Univesity of the Negev.
 
-Run main_V2.m to start the program, screen shot available here:
+Run main.mlapp to start the program, screen shot available here:
 https://github.com/CallShaul/Experiment-control-panel---IR-VIS-camera-reconder-with-emotions-arousing-player/blob/master/Control%20panel%20image.PNG
 
 # Video analayzer for physiologicals signals extraction:
@@ -24,8 +24,10 @@ The video recorder fits OPTRIS IR camera's and specifically PI450 model, and it 
 link for the PI450 IR camera: https://www.optris.global/thermal-imager-optris-pi-400i-pi-450i
 
 # Remarks:
-
- - You need image processing, signal processing, wavelet toolboxes to run this code properly (possibly some more toolboxes).
+Requirements:
+- You need image processing, signal processing, wavelet toolboxes to run this code properly (possibly some more toolboxes).
+- You need to install “MATLAB Support Package for USB Webcams” add-on, and “MATLAB Support for MinGW-w64 C/C++ Compiler” add-on.
+- Download and install VLC player to use the play videos functions (For Windows 10, 64 bit: https://download.cnet.com/VLC-Media-Player-64-bit/3000-13632_4-75761094.html).
 
 - Some of the VISanalysis function algorithm was inspired by the paper: Motion-resistant heart rate measurement from face videos using patch-based fusion
 https://www.researchgate.net/publication/330323577_Motion-resistant_heart_rate_measurement_from_face_videos_using_patch-based_fusion
