@@ -1,7 +1,7 @@
 function recorder(app, properties)
 clc;
 %% Set global variables
-%% Shaul
+
 global viewer_is_running; % initialize the main frame grabber loop as global variable
 global IRInterface; % initialize the interface as a global variable
 global feedback;
@@ -55,7 +55,7 @@ if properties.playVideofiles == 1 && err == 0
         err = status(app, 'Error connecting to VLC player.', 'r', 1, 1);
     end
     
-    try
+    %try
         
         for i=1:length(properties.playlist_idx) % creating the playlist by the right order (idx)
             playlist(i) = properties.list(properties.playlist_idx(i));
@@ -65,9 +65,9 @@ if properties.playVideofiles == 1 && err == 0
         playlist(1).startTime = 0;
         playlist(1).endTime = 0;
         list_length = length(playlist);
-    catch
-        err = status(app, 'Error loading video files playlist.', 'r', 1, 1);
-    end
+    %catch
+    %    err = status(app, 'Error loading video files playlist.', 'r', 1, 1);
+    %end
     
     if properties.do_not_record_on_black == 0
         black_record = 0; % save frames during the whole time
@@ -428,11 +428,17 @@ end
 
 if properties.save_data == 1 && err ~= 1
     
+    try
+    	app.RemarksEditField.Enable = 0;
+        app.RemarksEditFieldLabel.Enable = 0;   
+    catch
+    end
+    
     err = status(app, 'Saving data file...', 'g', 1, 0);
     
     %try
         
-        err = save_parameters(properties, filename, t, timing, playlist); % saves recording parameters
+        err = save_parameters(app, properties, filename, t, timing, playlist); % saves recording parameters
         err = save_buffer(app, properties, filename, playlist, buffer_VIS, buffer_IR, video_idx, buff_idx); % update data to mat file
         
         try

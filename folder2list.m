@@ -19,6 +19,15 @@ if exist('files','var') == 1 && isempty(files) == 0
         [token,remain] = strtok(files(i).name,'.');
         files(i).idx = str2num(['uint8(',token,')']);
         
+        if isempty(files(i).idx) == 1           
+            files(i).idx = str2double(token(1:strfind(token, '_')-1)); % case idx was empty: idxwill be the number at the beginning of the file name (before _)
+            
+            if isnan(files(i).idx)
+               files(i).idx = str2double(token(1:find(isletter(token), 1)-1)); % case idx was empty: idxwill be the number at the beginning of the file name (before _)
+            end
+            
+        end
+        
         if strcmp(remain,'.mp4') == 1 || strcmp(remain,'.avi') == 1 || strcmp(remain,'.mov') == 1 ...
                 || strcmp(remain,'.mts') == 1 || strcmp(remain,'.mpg') == 1 || strcmp(remain,'.wmv') == 1 ...
                 || strcmp(remain,'.mkv') == 1

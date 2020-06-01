@@ -23,11 +23,26 @@ if properties.playVideofiles == 1 && properties.saveONblack == 1 && properties.s
 
     org_vid_name = extractBefore(playlist(vid_num).name,"."); % get file name
     vid_name = str2num(org_vid_name); % get it to numerical value
-
-    if isempty(vid_name) == 1 % case there was an error changing the name to numerical
+    
+    if isvarname(['VIS_', org_vid_name]) == 1
+        
+        VIS_name = ['VIS_', org_vid_name];
+        IR_name = ['IR_', org_vid_name];
+        
+    elseif isempty(vid_name) == 1
+        
         vid_name = matlab.lang.makeValidName(org_vid_name); % change the name to something similar and legal
         vid_name = strcat(vid_name,['_', num2str(vid_num)]);
+        
+        VIS_name = ['VIS_', vid_name];
+        IR_name = ['IR_', vid_name];
+        
     end
+    
+    %if isempty(vid_name) == 1 % case there was an error changing the name to numerical
+    %    vid_name = matlab.lang.makeValidName(org_vid_name); % change the name to something similar and legal
+    %    vid_name = strcat(vid_name,['_', num2str(vid_num)]);
+    %end
     
 elseif properties.playVideofiles == 1 && properties.saveONblack == 0
     vid_name = 0;
@@ -43,8 +58,8 @@ if properties.VIS_camera == 1
         buffer_VIS = buffer_VIS(:,:,:,1:buff_idx);
     end
     
-    eval(['VIS_', num2str(vid_name), ' = buffer_VIS;']); % get the desired signal
-    save(filename,['VIS_', num2str(vid_name)],'-append'); % adds variables to the saved data file
+    eval([VIS_name, ' = buffer_VIS;']); % get the desired signal
+    save(filename, VIS_name,'-append'); % adds variables to the saved data file
     
 end
 
@@ -56,8 +71,8 @@ if properties.IR_camera == 1
         buffer_IR = buffer_IR(:,:,:,1:buff_idx);
     end
     
-    eval(['IR_', num2str(vid_name), ' = buffer_IR;']); % get the desired signal
-    save(filename,['IR_', num2str(vid_name)],'-append'); % adds variables to the saved data file
+    eval([IR_name, ' = buffer_IR;']); % get the desired signal
+    save(filename,IR_name,'-append'); % adds variables to the saved data file
     
 end
 
