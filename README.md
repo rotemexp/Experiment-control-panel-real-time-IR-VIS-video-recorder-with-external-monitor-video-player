@@ -25,9 +25,9 @@ link for the PI450 IR camera: https://www.optris.global/thermal-imager-optris-pi
 
 # Remarks:
 Requirements:
-- You need image processing, signal processing, wavelet toolboxes to run this code properly (possibly some more toolboxes).
-- You need to install “MATLAB Support Package for USB Webcams” add-on, and “MATLAB Support for MinGW-w64 C/C++ Compiler” add-on.
-- Download and install VLC player to use the play videos functions (For Windows 10, 64 bit: https://download.cnet.com/VLC-Media-Player-64-bit/3000-13632_4-75761094.html).
+- Image processing toolbox is required.
+- “MATLAB Support Package for USB Webcams” and “MATLAB Support for MinGW-w64 C/C++ Compiler” add-ons are required.
+- VLC player is required in order to use the "play videos" functions (For Windows 10, 64 bit: https://download.cnet.com/VLC-Media-Player-64-bit/3000-13632_4-75761094.html).
 
 - Some of the VISanalysis function algorithm was inspired by the paper: Motion-resistant heart rate measurement from face videos using patch-based fusion
 https://www.researchgate.net/publication/330323577_Motion-resistant_heart_rate_measurement_from_face_videos_using_patch-based_fusion
