@@ -1,12 +1,12 @@
 # Thermal-Visible-face-videos-recorder-with-UI: 
 Thermal and Visible video recorder software and player, designed to work with up to 2 cameras - Infrared and visible while playing emotions stimulating videos on another screen.
 
-Written for a combined reaserch of the psycology and the electrical engineering department at Ben Gurion Univesity of the Negev.
+Written for a combined research of the psychology and the electrical engineering department at Ben Gurion Univesity of the Negev.
 
 Run main.mlapp to start the program, screen shot available here:
 https://github.com/CallShaul/Experiment-control-panel---IR-VIS-camera-reconder-with-emotions-arousing-player/blob/master/Control%20panel%20image.PNG
 
-# Video analayzer for physiologicals signals extraction:
+# Video analyzer for physiological signals extraction:
 Can be used for heart rate extraction, respiratory rate and other physiological parameters. 
 Run analyze.mat to start.
 
