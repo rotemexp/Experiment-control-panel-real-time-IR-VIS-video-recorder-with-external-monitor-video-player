@@ -39,15 +39,14 @@ if properties.playVideofiles == 1 && properties.saveONblack == 1 && properties.s
         
     end
     
-    %if isempty(vid_name) == 1 % case there was an error changing the name to numerical
-    %    vid_name = matlab.lang.makeValidName(org_vid_name); % change the name to something similar and legal
-    %    vid_name = strcat(vid_name,['_', num2str(vid_num)]);
-    %end
-    
 elseif properties.playVideofiles == 1 && properties.saveONblack == 0
     vid_name = 0;
+    VIS_name = ['VIS_', num2str(vid_name)];
+    IR_name = ['IR_', num2str(vid_name)];
 else
     vid_name = vid_num; % case there only one data file
+    VIS_name = ['VIS_', num2str(vid_name)];
+    IR_name = ['IR_', num2str(vid_name)];
 end
 
 if properties.VIS_camera == 1

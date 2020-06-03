@@ -64,6 +64,8 @@ if properties.playVideofiles == 1 && err == 0
         
         playlist(1).startTime = 0;
         playlist(1).endTime = 0;
+        playlist(1).startFrame = 0;
+        playlist(1).endFrame = 0;
         list_length = length(playlist);
     %catch
     %    err = status(app, 'Error loading video files playlist.', 'r', 1, 1);
@@ -83,8 +85,6 @@ end
 %% Saving data file
 if properties.save_data == 1 && err == 0
     
-    last_idx = 0;
-    
     err = status(app, 'Creating data file to save videos to...', 'g', 1, 0);
     
     if properties.timeStamp4savedFile == 0
@@ -93,13 +93,27 @@ if properties.save_data == 1 && err == 0
         filename = ['Recordings\', properties.title, '_', num2str(now), '.mat']; % file name with timestamp
     end
     
-    try
+    %try
+    
+    if properties.manual_memory_allocation == 0
+        
+        if properties.stop_after == 1
+            properties.allocation = properties.constantFrameRate*properties.stop_after_duration;
+        elseif properties.playTime == 0
+            properties.allocation = uint32(properties.constantFrameRate*max(playlist.duration));
+        else
+            properties.allocation = properties.constantFrameRate*properties.playTime;
+        end
+        
+    end
+    
+    properties.allocation = round(properties.allocation + 0.1*properties.allocation);
         
         % Allocates memory:
         if properties.VIS_camera == 1 && properties.gray == 1
-            buffer_VIS = zeros(properties.VIS_resolution(1), properties.VIS_resolution(2), str2double(properties.allocation),'uint8'); % gray
+            buffer_VIS = zeros(properties.VIS_resolution(1), properties.VIS_resolution(2), properties.allocation,'uint8'); % gray
         elseif properties.VIS_camera == 1 && properties.gray == 0
-            buffer_VIS = zeros(properties.VIS_resolution(1), properties.VIS_resolution(2), 3, str2double(properties.allocation),'uint8'); % color
+            buffer_VIS = zeros(properties.VIS_resolution(1), properties.VIS_resolution(2), 3, properties.allocation,'uint8'); % color
         else
             buffer_VIS = 0;
         end
@@ -123,9 +137,9 @@ if properties.save_data == 1 && err == 0
         
         save(filename,'-v7.3','properties'); % creates the data file and stores first variable in it
         
-    catch
-        err = status(app, 'Error creating and saving data file, program ends.', 'r', 1, 1);
-    end
+    %catch
+    %    err = status(app, 'Error creating and saving data file, program ends.', 'r', 1, 1);
+    %end
     
 end
 

@@ -48,30 +48,4 @@ end
 
 end
 
-%{
-    j = 1;
-    for i=1:len % arranging file structure by file name in ascending way
-        [~, col] = find([files.idx] == i);
-        
-        if isempty(col) == 0 % case files name are numbered
-            list(j) = files(col(1)); % buils the new list
-            files(col(1)).idx = []; % remove added value from list
-            j = j + 1;
-        else % case random file names
-            list = files;
-            
-            for j=1:len
-                list(j).idx = j;
-            end
-            
-            break;
-        end
-    end
-        
-        [r, c] = size(list);
-if c > r
-    list = list'; % case images, need to transpose list
-end
-        
-%}
 
