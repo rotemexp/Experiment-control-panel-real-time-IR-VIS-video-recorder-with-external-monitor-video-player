@@ -100,7 +100,7 @@ if properties.save_data == 1 && err == 0
         if properties.stop_after == 1
             properties.allocation = properties.constantFrameRate*properties.stop_after_duration;
         elseif properties.playTime == 0
-            properties.allocation = uint32(properties.constantFrameRate*max(playlist.duration));
+            properties.allocation = uint32(properties.constantFrameRate*max([playlist.duration]));
         else
             properties.allocation = properties.constantFrameRate*properties.playTime;
         end
@@ -124,9 +124,9 @@ if properties.save_data == 1 && err == 0
             properties.IR_resolution = res;
             
             if properties.tempORcolor == 1
-                buffer_IR = zeros(res(1), res(2), str2double(properties.allocation),'single'); % temperature
+                buffer_IR = zeros(res(1), res(2), properties.allocation,'single'); % temperature
             elseif properties.tempORcolor == 0
-                buffer_IR = zeros(res(1), res(2), 3, str2double(properties.allocation),'single'); % psaudo-color
+                buffer_IR = zeros(res(1), res(2), 3, properties.allocation,'single'); % psaudo-color
             end
             
         else

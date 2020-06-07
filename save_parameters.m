@@ -59,8 +59,15 @@ if properties.playVideofiles == 1
             play_list(i,6) = 0; % case endTime is empty due to program ends before all videos were played
         end
         
-        play_list(i,7) = playlist(i).endFrame - playlist(i).startFrame + 1;
-        playlist(i).frames_count = playlist(i).endFrame - playlist(i).startFrame + 1;
+        frame__dur_val = playlist(i).endFrame - playlist(i).startFrame + 1;
+        if ~isempty(frame__dur_val)
+            play_list(i,7) = frame__dur_val;
+        end
+        
+        frame_count_val = playlist(i).endFrame - playlist(i).startFrame + 1;
+        if ~isempty(frame_count_val)
+            playlist(i).frames_count = frame_count_val;
+        end
         
         play_list(i,8) = single(mean_fps(i));
         playlist(i).AVG_FPS = mean_fps(i);
