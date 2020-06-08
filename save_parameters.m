@@ -30,9 +30,9 @@ if properties.playVideofiles == 1
     for i=1:list_length % creates double array for relevant data
         
         if isa(extractBefore(playlist(i).name,"."), 'char') == 1
-            play_list(i,1) = properties.playlist_idx(i); % saves video list number
+            play_list(i,1) = single(properties.playlist_idx(i)); % saves video list number
         else
-            play_list(i,1) = str2double(extractBefore(playlist(i).name,".")); % save video file name number
+            play_list(i,1) = single(str2double(extractBefore(playlist(i).name,"."))); % save video file name number
         end
         
         play_list(i,2) = single(playlist(i).duration);
