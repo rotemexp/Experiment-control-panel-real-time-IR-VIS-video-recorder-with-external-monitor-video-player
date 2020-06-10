@@ -87,6 +87,8 @@ if properties.save_data == 1 && err == 0
     
     err = status(app, 'Creating data file to save videos to...', 'g', 1, 0);
     
+    [~, dir_feedback, ~] = mkdir ('Recordings'); % creates dir if it doesn't exist yet
+    
     filename = avoidOverwrite([properties.desired_file_name, '.mat'], [pwd, '\Recordings\'], 3);
 
     properties.final_file_name = filename;
@@ -131,10 +133,10 @@ if properties.save_data == 1 && err == 0
         else
             buffer_IR = 0;
         end
-        
-        [~, dir_feedback, ~] = mkdir ('Recordings'); % creates dir if it doesn't exist yet
-        
+
         properties.exp_start_time = datetime;
+        properties.exp_start_time_unix = posixtime(datetime);
+        
         save(filename,'-v7.3','properties'); % creates the data file and stores first variable in it
         
     %catch
@@ -453,6 +455,8 @@ if properties.save_data == 1 && err ~= 1
     %try
     
         properties.exp_end_time = datetime;
+        properties.exp_end_time_unix = posixtime(datetime);
+        
         err = save_parameters(app, properties, filename, t, timing, playlist); % saves recording parameters
         err = save_buffer(app, properties, filename, playlist, buffer_VIS, buffer_IR, video_idx, buff_idx); % update data to mat file
         
