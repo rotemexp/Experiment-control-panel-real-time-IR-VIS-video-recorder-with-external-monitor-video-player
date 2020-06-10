@@ -1,0 +1,180 @@
+<deployment-project plugin="plugin.ezdeploy" plugin-version="1.0">
+  <configuration build-checksum="3991418259" file="C:\Users\saul6\Documents\Electrooptical Eng\Thesis\MATLAB\Record and Analayze\main.prj" location="C:\Users\saul6\Documents\Electrooptical Eng\Thesis\MATLAB\Record and Analayze" name="main" preferred-package-location="C:\Users\saul6\Documents\Electrooptical Eng\Thesis\MATLAB\Record and Analayze\main\for_redistribution" preferred-package-type="package.type.exe" target="target.ezdeploy.standalone" target-name="Application Compiler">
+    <param.appname>main</param.appname>
+    <param.icon />
+    <param.icons />
+    <param.version>1.0</param.version>
+    <param.authnamewatermark>Shaul Shvimmer</param.authnamewatermark>
+    <param.email>saulsh@post.bgu.ac.il</param.email>
+    <param.company>BGU</param.company>
+    <param.summary />
+    <param.description>Thermal and Visible video recorder software and player, designed to work with up to 2 cameras - Infrared and visible while playing emotions stimulating videos on another screen.
+
+Written for a combined reaserch of the psycology and the electrical engineering department at Ben Gurion Univesity of the Negev.</param.description>
+    <param.screenshot />
+    <param.guid />
+    <param.installpath.string>\BGU\main\</param.installpath.string>
+    <param.installpath.combo>option.installpath.programfiles</param.installpath.combo>
+    <param.logo />
+    <param.install.notes />
+    <param.target.install.notes />
+    <param.intermediate>${PROJECT_ROOT}\main\for_testing</param.intermediate>
+    <param.files.only>${PROJECT_ROOT}\main\for_redistribution_files_only</param.files.only>
+    <param.output>${PROJECT_ROOT}\main\for_redistribution</param.output>
+    <param.logdir>${PROJECT_ROOT}\main</param.logdir>
+    <param.enable.clean.build>false</param.enable.clean.build>
+    <param.user.defined.mcr.options />
+    <param.target.type>subtarget.standalone</param.target.type>
+    <param.support.packages>
+      <item>&lt;package displayname="USB Webcams" enabled="true" name="USB Webcams" product="MATLAB"/&gt;</item>
+    </param.support.packages>
+    <param.web.mcr>true</param.web.mcr>
+    <param.package.mcr>false</param.package.mcr>
+    <param.no.mcr>false</param.no.mcr>
+    <param.web.mcr.name>MyAppInstaller_web</param.web.mcr.name>
+    <param.package.mcr.name>MyAppInstaller_mcr</param.package.mcr.name>
+    <param.no.mcr.name>MyAppInstaller_app</param.no.mcr.name>
+    <param.windows.command.prompt>true</param.windows.command.prompt>
+    <param.create.log>false</param.create.log>
+    <param.log.file />
+    <param.native.matlab>false</param.native.matlab>
+    <param.checkbox>false</param.checkbox>
+    <param.example />
+    <param.help.text>Syntax 
+	  -? 
+	 
+ Input Arguments 
+	 -?  print help on how to use the application 
+	 input arguments 
+ Description 
+ 	 Thermal and Visible video recorder software and player, designed to work with up to 2 cameras - Infrared and visible while playing emotions stimulating videos on another screen.
+
+Written for a combined reaserch of the psycology and the electrical engineering department at Ben Gurion Univesity of the Negev.</param.help.text>
+    <unset>
+      <param.icon />
+      <param.icons />
+      <param.version />
+      <param.summary />
+      <param.screenshot />
+      <param.guid />
+      <param.installpath.string />
+      <param.installpath.combo />
+      <param.logo />
+      <param.install.notes />
+      <param.target.install.notes />
+      <param.intermediate />
+      <param.files.only />
+      <param.output />
+      <param.logdir />
+      <param.enable.clean.build />
+      <param.user.defined.mcr.options />
+      <param.target.type />
+      <param.web.mcr />
+      <param.package.mcr />
+      <param.no.mcr />
+      <param.web.mcr.name />
+      <param.package.mcr.name />
+      <param.no.mcr.name />
+      <param.windows.command.prompt />
+      <param.create.log />
+      <param.log.file />
+      <param.native.matlab />
+      <param.checkbox />
+      <param.example />
+    </unset>
+    <fileset.main>
+      <file>${PROJECT_ROOT}\main.mlapp</file>
+    </fileset.main>
+    <fileset.resources>
+      <file>${PROJECT_ROOT}\black.png</file>
+      <file>${PROJECT_ROOT}\collect_feedback.m</file>
+      <file>${PROJECT_ROOT}\Control panel image.PNG</file>
+      <file>${PROJECT_ROOT}\cropicon.png</file>
+      <file>${PROJECT_ROOT}\direct_binding.h</file>
+      <file>${PROJECT_ROOT}\evo_ir_matlab_example.m</file>
+      <file>${PROJECT_ROOT}\EvoIRFrameMetadata.h</file>
+      <file>${PROJECT_ROOT}\EvoIRMatlabInterface.m</file>
+      <file>${PROJECT_ROOT}\EvoIRViewer.m</file>
+      <file>${PROJECT_ROOT}\folder2list.m</file>
+      <file>${PROJECT_ROOT}\foldericon.png</file>
+      <file>${PROJECT_ROOT}\Formats.def</file>
+      <file>${PROJECT_ROOT}\generic.xml</file>
+      <file>${PROJECT_ROOT}\get_IR_resolution.m</file>
+      <file>${PROJECT_ROOT}\irdirectsdk_defs.h</file>
+      <file>${PROJECT_ROOT}\left-arrow-icon.png</file>
+      <file>${PROJECT_ROOT}\lib_collect_feedback.prj</file>
+      <file>${PROJECT_ROOT}\libirimager.dll</file>
+      <file>${PROJECT_ROOT}\popup_fig.mlapp</file>
+      <file>${PROJECT_ROOT}\popup_fig_finder.m</file>
+      <file>${PROJECT_ROOT}\recorder.m</file>
+      <file>${PROJECT_ROOT}\refreshicon.png</file>
+      <file>${PROJECT_ROOT}\request.json</file>
+      <file>${PROJECT_ROOT}\right-arrow-icon.png</file>
+      <file>${PROJECT_ROOT}\ROIcrop.m</file>
+      <file>${PROJECT_ROOT}\save_buffer.m</file>
+      <file>${PROJECT_ROOT}\save_parameters.m</file>
+      <file>${PROJECT_ROOT}\status.m</file>
+      <file>${PROJECT_ROOT}\two-right-arrows-icon.png</file>
+      <file>${PROJECT_ROOT}\uifigureOnTop.m</file>
+      <file>${PROJECT_ROOT}\VLC.m</file>
+      <file>${PROJECT_ROOT}\warm_up.m</file>
+    </fileset.resources>
+    <fileset.package />
+    <fileset.depfun>
+      <file>C:\ProgramData\MATLAB\SupportPackages\R2020a\toolbox\matlab\webcam\supportpackages\+matlab\+webcam\+internal\Utility.p</file>
+      <file>C:\ProgramData\MATLAB\SupportPackages\R2020a\toolbox\matlab\webcam\supportpackages\+matlab\+webcam\+internal\webcamDesktop.p</file>
+      <file>C:\ProgramData\MATLAB\SupportPackages\R2020a\toolbox\matlab\webcam\supportpackages\+matlab\+webcam\+internal\webcamOnline.p</file>
+      <file>C:\ProgramData\MATLAB\SupportPackages\R2020a\toolbox\matlab\webcam\supportpackages\@webcam\webcam.m</file>
+    </fileset.depfun>
+    <build-deliverables>
+      <file location="${PROJECT_ROOT}\main\for_testing" name="splash.png" optional="false">C:\Users\saul6\Documents\Electrooptical Eng\Thesis\MATLAB\Record and Analayze\main\for_testing\splash.png</file>
+      <file location="${PROJECT_ROOT}\main\for_testing" name="main.exe" optional="false">C:\Users\saul6\Documents\Electrooptical Eng\Thesis\MATLAB\Record and Analayze\main\for_testing\main.exe</file>
+      <file location="${PROJECT_ROOT}\main\for_testing" name="readme.txt" optional="true">C:\Users\saul6\Documents\Electrooptical Eng\Thesis\MATLAB\Record and Analayze\main\for_testing\readme.txt</file>
+    </build-deliverables>
+    <workflow />
+    <matlab>
+      <root>C:\Program Files\MATLAB\R2020a</root>
+      <toolboxes>
+        <toolbox name="matlabcoder" />
+        <toolbox name="gpucoder" />
+        <toolbox name="fixedpoint" />
+        <toolbox name="neuralnetwork" />
+      </toolboxes>
+      <toolbox>
+        <matlabcoder>
+          <enabled>true</enabled>
+        </matlabcoder>
+      </toolbox>
+      <toolbox>
+        <gpucoder>
+          <enabled>true</enabled>
+        </gpucoder>
+      </toolbox>
+      <toolbox>
+        <fixedpoint>
+          <enabled>true</enabled>
+        </fixedpoint>
+      </toolbox>
+      <toolbox>
+        <neuralnetwork>
+          <enabled>true</enabled>
+        </neuralnetwork>
+      </toolbox>
+    </matlab>
+    <platform>
+      <unix>false</unix>
+      <mac>false</mac>
+      <windows>true</windows>
+      <win2k>false</win2k>
+      <winxp>false</winxp>
+      <vista>false</vista>
+      <linux>false</linux>
+      <solaris>false</solaris>
+      <osver>10.0</osver>
+      <os32>false</os32>
+      <os64>true</os64>
+      <arch>win64</arch>
+      <matlab>true</matlab>
+    </platform>
+  </configuration>
+</deployment-project>

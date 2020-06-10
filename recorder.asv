@@ -87,10 +87,13 @@ if properties.save_data == 1 && err == 0
     
     err = status(app, 'Creating data file to save videos to...', 'g', 1, 0);
     
-    filename = avoidOverwrite([properties.desired_file_name, '.mat'], [pwd, '\Recordings\'], 3);
-
-    properties.final_file_name = filename;
-    filename = ['Recordings\', filename]; % file name without timestamp
+    properties.final_file_name = avoidOverwrite([properties.desired_file_name, '.mat'], 'Recordings\', 3);
+    
+    if properties.timeStamp4savedFile == 0
+        filename = ['Recordings\', properties.final_file_name, '.mat']; % file name without timestamp
+    elseif properties.timeStamp4savedFile == 1
+        filename = ['Recordings\', properties.final_file_name, '_', num2str(now), '.mat']; % file name with timestamp
+    end
     
     %try
     
