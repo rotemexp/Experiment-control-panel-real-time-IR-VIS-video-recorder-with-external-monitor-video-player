@@ -84,7 +84,7 @@ properties.exp_remarks = app.RemarksEditField.Value; % Saves the experiment rema
 properties.raw_timing = raw_timing;
 properties.t = t';
 properties.frame_rate = properties.constantFrameRate;
-properties.timing_fields = ["Elapsed time (sec)", "FPS", "played video index (zero is black screen)"];
+properties.timing_fields = ["Elapsed time (sec)", "FPS", "played video index", "FPS corrector"];
 
 save(filename,'properties','-append'); % adds variables to the saved data file
 

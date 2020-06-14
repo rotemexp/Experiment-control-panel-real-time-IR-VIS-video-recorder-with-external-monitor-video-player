@@ -147,12 +147,12 @@ end
 
 %% Setting frame loop parameters
 
-timing = uint16(zeros(2,3));
+timing = single(zeros(2,4));
 idx = 1;
 buff_idx = 0;
 saved_frames_counter = 0;
 video_idx = 1;
-FPS_idx = 1;
+timing_idx = 1;
 videosPlayed = 0;
 frameCount = 0;
 tLast_play = 1;
@@ -161,6 +161,8 @@ t = uint64(zeros(1));
 t_seg = zeros(2,1);
 tStart = tic;
 playFlag = 2;
+delay_corrector = str2double(app.FPSdelaycorrectorEditField.Value);
+delay_corrector_step = str2double(app.FPSdelaycorrectorstepEditField.Value);
 
 if ~exist('playlist', 'var')
     playlist = 0;
@@ -202,14 +204,26 @@ end
 
 %% Frames loop
 while(viewer_is_running) % main loop
-    
+
     %% Maintain constant frame rate
     
     if properties.constantFrameRate ~= 0
-        while t_seg(2) - t_seg(1) <= (1000/properties.constantFrameRate) % checks if elpased time is larger then required
-            t_seg(2) = (round(toc(tStart)*1000)); % saves time delta
+        
+        %while t_seg(2) - t_seg(1) <= (1000/properties.constantFrameRate) % checks if elpased time is larger then required
+        %    t_seg(2) = (round(toc(tStart)*1000)); % saves time delta
+        %end
+        %t_seg(1) = t_seg(2); % updates last time stamp
+        
+        
+        time_delta = t_seg(2) - t_seg(1);
+        t_seg(2) = round(toc(tStart)*1000); % saves time delta [ms]
+        time_parameter = 1000/properties.constantFrameRate;
+        if time_delta <= time_parameter
+            pause(((time_parameter - time_delta) / 1000) * delay_corrector);
         end
         t_seg(1) = t_seg(2); % updates last time stamp
+        
+        
     end
     
     %% Get VIS / IR frame from camera
@@ -404,28 +418,43 @@ while(viewer_is_running) % main loop
     
     %% Elpased time is larger then 1 sec
     if t(idx) - t(tLast_display) >= 1000 % checks if elpased time is larger then 1 sec
-        timing(FPS_idx,1) = (t(idx) / 1000);
-        timing(FPS_idx,2) = frameCount;
+        timing(timing_idx,1) = (t(idx) / 1000);
+        timing(timing_idx,2) = frameCount;
         
         if properties.playVideofiles == 1 && viewer_is_running == 1 && playFlag == 1
-            timing(FPS_idx,3) = video_idx;
+            timing(timing_idx,3) = video_idx;
         end
-        
+               
         try
             
-            app.FPS_status.Text = sprintf('%s', num2str(timing(FPS_idx,2))); % updates frame rate
+            app.FPS_status.Text = sprintf('%s', num2str(timing(timing_idx,2))); % updates frame rate
             app.Status2.Text = sprintf('%s', num2str(t(idx) / 1000)); % updates elapsed time
             
         catch
         end
         
-        FPS_idx = FPS_idx + 1;
-        frameCount = 0; % reset the frames counter
-        tLast_display = idx; % saves the index of the last time found
-        
         if properties.playVideofiles == 1 && properties.verifyFullscreen == 1
             v.Fullscreen = 'on'; % makes sure VLC player is at fullscreen mode (every second)
         end
+        
+        if properties.save_data == 1
+            
+            timing(timing_idx,4) = delay_corrector; % save FPS corrector parameter [units: %*10]
+            
+            if timing(end, 2) ~= properties.constantFrameRate % perform minor time delay adjustments to get accurate FPS
+                if timing(end, 2) > properties.constantFrameRate
+                    delay_corrector = delay_corrector + delay_corrector_step; % FPS is too high - increase delay by 0.1% between frames
+                else
+                    delay_corrector = delay_corrector - delay_corrector_step; % FPS is too low - reduce delay by 0.1% between frames
+                end
+                app.FPSdelaycorrectorEditField.Value = num2str(delay_corrector);
+            end
+        
+        end
+        
+        timing_idx = timing_idx + 1;
+        frameCount = 0; % reset the frames counter
+        tLast_display = idx; % saves the index of the last time found
         
     end
     
