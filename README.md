@@ -18,7 +18,6 @@ It is best to record the face video's with F/# value not too low! (about 2.2 - 2
 I reccomend using ELP USB camera, with manual optical zoom and focus, based on the sensor: Sony IMX179, link for the camera:
 https://www.amazon.com/gp/product/B07R4CLRQH/ref=ppx_yo_dt_b_asin_title_o02_s00?ie=UTF8&psc=1
 
-
 # Infrared camera:
 The video recorder fits OPTRIS IR camera's and specifically PI450 model, and it can be easily modified to work with other IR cameras.
 link for the PI450 IR camera: https://www.optris.global/thermal-imager-optris-pi-400i-pi-450i
@@ -28,7 +27,7 @@ Requirements:
 - Image processing toolbox is required.
 - “MATLAB Support Package for USB Webcams” and “MATLAB Support for MinGW-w64 C/C++ Compiler” add-ons are required.
 - VLC player is required in order to use the "play videos" functions (For Windows 10, 64 bit: https://download.cnet.com/VLC-Media-Player-64-bit/3000-13632_4-75761094.html).
-
+- Data analyzer folder includes: Low pass, High pass, Band pass filters and signal plots, Fast Fourier transform, Short time furrier transform, Continues wavelet transform, Save cache data, Play videos slow / fast / frames difference and more.
 - Some of the VISanalysis function algorithm was inspired by the paper: Motion-resistant heart rate measurement from face videos using patch-based fusion
 https://www.researchgate.net/publication/330323577_Motion-resistant_heart_rate_measurement_from_face_videos_using_patch-based_fusion
 
