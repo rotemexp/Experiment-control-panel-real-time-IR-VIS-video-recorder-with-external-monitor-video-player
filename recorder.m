@@ -56,17 +56,17 @@ if properties.playVideofiles == 1 && err == 0
     end
     
     %try
-        
-        for i=1:length(properties.playlist_idx) % creating the playlist by the right order (idx)
-            playlist(i) = properties.list(properties.playlist_idx(i));
-            playlist(i).idx = i;
-        end
-        
-        playlist(1).startTime = 0;
-        playlist(1).endTime = 0;
-        playlist(1).startFrame = 0;
-        playlist(1).endFrame = 0;
-        list_length = length(playlist);
+    
+    for i=1:length(properties.playlist_idx) % creating the playlist by the right order (idx)
+        playlist(i) = properties.list(properties.playlist_idx(i));
+        playlist(i).idx = i;
+    end
+    
+    playlist(1).startTime = 0;
+    playlist(1).endTime = 0;
+    playlist(1).startFrame = 0;
+    playlist(1).endFrame = 0;
+    list_length = length(playlist);
     %catch
     %    err = status(app, 'Error loading video files playlist.', 'r', 1, 1);
     %end
@@ -90,7 +90,7 @@ if properties.save_data == 1 && err == 0
     [~, dir_feedback, ~] = mkdir ('Recordings'); % creates dir if it doesn't exist yet
     
     filename = avoidOverwrite([properties.desired_file_name, '.mat'], [pwd, '\Recordings\'], 3);
-
+    
     properties.final_file_name = filename;
     filename = ['Recordings\', filename]; % file name without timestamp
     
@@ -107,38 +107,50 @@ if properties.save_data == 1 && err == 0
         end
         
     end
+
+    if properties.crop_cor ~= 0
+        crop_vis_res = str2num(properties.crop_cor); % case should crop VIS image
+        vis_res(1) = crop_vis_res(4) + 1;
+        vis_res(2) = crop_vis_res(3) + 1;
+        properties.cropped_vis_res(1) = crop_vis_res(4) + 1;
+        properties.cropped_vis_res(2) = crop_vis_res(3) + 1;
+    else
+        vis_res(1) = properties.VIS_resolution(1);
+        vis_res(2) = properties.VIS_resolution(2);
+    end
+    
+    % Allocates memory:
     
     properties.allocation = round(properties.allocation + 0.1*properties.allocation);
+    
+    if properties.VIS_camera == 1 && properties.gray == 1
+        buffer_VIS = zeros(vis_res(1), vis_res(2), properties.allocation,'uint8'); % gray
+    elseif properties.VIS_camera == 1 && properties.gray == 0
+        buffer_VIS = zeros(vis_res(1), vis_res(2), 3, properties.allocation,'uint8'); % color
+    else
+        buffer_VIS = 0;
+    end
+    
+    if properties.IR_camera == 1
         
-        % Allocates memory:
-        if properties.VIS_camera == 1 && properties.gray == 1
-            buffer_VIS = zeros(properties.VIS_resolution(1), properties.VIS_resolution(2), properties.allocation,'uint8'); % gray
-        elseif properties.VIS_camera == 1 && properties.gray == 0
-            buffer_VIS = zeros(properties.VIS_resolution(1), properties.VIS_resolution(2), 3, properties.allocation,'uint8'); % color
-        else
-            buffer_VIS = 0;
+        res = get_IR_resolution(properties, IRInterface); % getting the IR camera resolution
+        properties.IR_resolution = res;
+        
+        if properties.tempORcolor == 1
+            buffer_IR = zeros(res(1), res(2), properties.allocation,'single'); % temperature
+        elseif properties.tempORcolor == 0
+            buffer_IR = zeros(res(1), res(2), 3, properties.allocation,'single'); % psaudo-color
         end
         
-        if properties.IR_camera == 1
-            
-            res = get_IR_resolution(properties, IRInterface); % getting the IR camera resolution
-            properties.IR_resolution = res;
-            
-            if properties.tempORcolor == 1
-                buffer_IR = zeros(res(1), res(2), properties.allocation,'single'); % temperature
-            elseif properties.tempORcolor == 0
-                buffer_IR = zeros(res(1), res(2), 3, properties.allocation,'single'); % psaudo-color
-            end
-            
-        else
-            buffer_IR = 0;
-        end
-
-        properties.exp_start_time = datetime;
-        properties.exp_start_time_unix = posixtime(datetime);
-        
-        save(filename,'-v7.3','properties'); % creates the data file and stores first variable in it
-        
+    else
+        buffer_IR = 0;
+    end
+    
+    properties.exp_start_time = datetime;
+    properties.exp_start_time_unix = posixtime(datetime);
+    
+    save(filename,'-v7.3','properties'); % creates the data file and stores first variable in it
+    
     %catch
     %    err = status(app, 'Error creating and saving data file, program ends.', 'r', 1, 1);
     %end
@@ -175,7 +187,7 @@ else
     properties.play_mode = 1;
 end
 
-if properties.crop_cor ~= 0 && err == 0
+if properties.crop_cor ~= 0 & err == 0
     crop_cor = str2num(properties.crop_cor); % case should crop VIS image
 end
 
@@ -204,25 +216,20 @@ end
 
 %% Frames loop
 while(viewer_is_running) % main loop
-
+    
     %% Maintain constant frame rate
     
     if properties.constantFrameRate ~= 0
         
-        %while t_seg(2) - t_seg(1) <= (1000/properties.constantFrameRate) % checks if elpased time is larger then required
-        %    t_seg(2) = (round(toc(tStart)*1000)); % saves time delta
-        %end
-        %t_seg(1) = t_seg(2); % updates last time stamp
-        
-        
         time_delta = t_seg(2) - t_seg(1);
         t_seg(2) = round(toc(tStart)*1000); % saves time delta [ms]
         time_parameter = 1000/properties.constantFrameRate;
+        
         if time_delta <= time_parameter
             pause(((time_parameter - time_delta) / 1000) * delay_corrector);
         end
-        t_seg(1) = t_seg(2); % updates last time stamp
         
+        t_seg(1) = t_seg(2); % updates last time stamp
         
     end
     
@@ -236,7 +243,7 @@ while(viewer_is_running) % main loop
             frame_VIS = snapshot(cam); % get imgage from VIS camera if needed
         end
         if properties.crop_cor ~= 0
-            frame_VIS = imcrop(frame_VIS,crop_cor); % cropping the frame
+            frame_VIS = imcrop(frame_VIS, crop_cor); % cropping the frame
         end
         
     end
@@ -424,7 +431,7 @@ while(viewer_is_running) % main loop
         if properties.playVideofiles == 1 && viewer_is_running == 1 && playFlag == 1
             timing(timing_idx,3) = video_idx;
         end
-               
+        
         try
             
             app.FPS_status.Text = sprintf('%s', num2str(timing(timing_idx,2))); % updates frame rate
@@ -449,7 +456,7 @@ while(viewer_is_running) % main loop
                 end
                 app.FPSdelaycorrectorEditField.Value = num2str(delay_corrector);
             end
-        
+            
         end
         
         timing_idx = timing_idx + 1;
@@ -474,8 +481,8 @@ end
 if properties.save_data == 1 && err ~= 1
     
     try
-    	app.RemarksEditField.Enable = 0;
-        app.RemarksEditFieldLabel.Enable = 0;   
+        app.RemarksEditField.Enable = 0;
+        app.RemarksEditFieldLabel.Enable = 0;
     catch
     end
     
@@ -483,22 +490,22 @@ if properties.save_data == 1 && err ~= 1
     
     %try
     
-        properties.exp_end_time = datetime;
-        properties.exp_end_time_unix = posixtime(datetime);
-        
-        err = save_parameters(app, properties, filename, t, timing, playlist); % saves recording parameters
-        err = save_buffer(app, properties, filename, playlist, buffer_VIS, buffer_IR, video_idx, buff_idx); % update data to mat file
-        
-        try
-            app.Status1.FontColor = [0.29,0.58,0.07]; % dark green
-            app.Status1.Value = sprintf('%s', ['File saved at: ',filename, ' successfully!']);
-            app.StopButton.ButtonPushedFcn(1,1); % brings UI back to 'run' mode
-        catch
-        end
-        
+    properties.exp_end_time = datetime;
+    properties.exp_end_time_unix = posixtime(datetime);
+    
+    err = save_parameters(app, properties, filename, t, timing, playlist); % saves recording parameters
+    err = save_buffer(app, properties, filename, playlist, buffer_VIS, buffer_IR, video_idx, buff_idx); % update data to mat file
+    
+    try
+        app.Status1.FontColor = [0.29,0.58,0.07]; % dark green
+        app.Status1.Value = sprintf('%s', ['File saved at: ',filename, ' successfully!']);
+        app.StopButton.ButtonPushedFcn(1,1); % brings UI back to 'run' mode
+    catch
+    end
+    
     %catch
-     %   status(app, 'Error saving data file!!!', 'r', 1, 0);
-     %   err = 1;
+    %   status(app, 'Error saving data file!!!', 'r', 1, 0);
+    %   err = 1;
     %end
     
 else
