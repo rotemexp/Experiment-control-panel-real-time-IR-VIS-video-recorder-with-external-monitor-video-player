@@ -23,13 +23,18 @@ The video recorder fits OPTRIS IR camera's and specifically PI450 model, and it 
 link for the PI450 IR camera: https://www.optris.global/thermal-imager-optris-pi-400i-pi-450i
 
 # Remarks:
+
 Requirements:
+
 - Image processing toolbox is required.
 - “MATLAB Support Package for USB Webcams” and “MATLAB Support for MinGW-w64 C/C++ Compiler” add-ons are required.
 - VLC player is required in order to use the "play videos" functions (For Windows 10, 64 bit: https://download.cnet.com/VLC-Media-Player-64-bit/3000-13632_4-75761094.html).
+
+In addition:
+
 - Data analyzer folder includes: Low pass, High pass, Band pass filters and signal plots, Fast Fourier transform, Short time furrier transform, Continues wavelet transform, Save cache data, Play videos slow / fast / frames difference and more.
 - Some of the VISanalysis function algorithm was inspired by the paper: Motion-resistant heart rate measurement from face videos using patch-based fusion
 https://www.researchgate.net/publication/330323577_Motion-resistant_heart_rate_measurement_from_face_videos_using_patch-based_fusion
 
 - Code written in MATLAB 2020a by Shaul Shvimmer, Electro-Optical engineering M.Sc student. saulsh@post.bgu.ac.il
-This code was written for reaserch purposes, if this work assists you please cite.
+# This code was written for reaserch purposes, if this work assists you please cite.
