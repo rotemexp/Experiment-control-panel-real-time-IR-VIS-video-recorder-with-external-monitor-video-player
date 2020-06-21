@@ -1,4 +1,4 @@
-function play(file2load, channel, video_number, fast_play, segment_time, show_differences)
+function play(file2load, channel, video_number, fast_play, segment_time, diff)
 
 [raw_vis, raw_ir, properties] = get_raw_vid(file2load, video_number, channel); % get video from data file
 
@@ -22,8 +22,8 @@ else
     return
 end
 
-if show_differences == 1
-    show_differences = 0;
+if diff == 1
+    diff = 0;
 end
 
 frame_rate = properties.play_list(video_number, 8);
@@ -36,14 +36,16 @@ i = 1;
 fig = figure();
 tStart = tic;
 frame_counter = 0;
+
 if vis_dimenstions == 3     
-    sum_diff_img = uint16(zeros(size(raw_vis(:,:,1))));
+    sum_diff_img = uint8(zeros(size(raw_vis(:,:,1))));
 elseif vis_dimenstions == 4
-    sum_diff_img = uint16(zeros(size(raw_vis(:,:,:,1))));
+    sum_diff_img = uint8(zeros(size(raw_vis(:,:,:,1))));
 end
+
 %tTotal = tic;
 
-while(i < (len - show_differences)) & (ishandle(fig) == 1)
+while(i < (len - diff)) & (ishandle(fig) == 1)
     
     if mode == 1 % dual channel view
         
@@ -51,14 +53,11 @@ while(i < (len - show_differences)) & (ishandle(fig) == 1)
         
         if ir_dimenstions == 3
             
-            if show_differences == 0
+            if diff == 0
                 imagesc(raw_ir(:,:,i));
             else
-                diff_img = abs(raw_ir(:,:,i) - raw_ir(:,:,i + show_differences));
-                mini = min(min(diff_img));
-                maxi = max(max(diff_img));
-                diff_img_norm = 255 * (diff_img - mini)./(maxi-mini);
-                imagesc(diff_img_norm);
+                diff_img = calc_img_diff(raw_ir(:,:,i), raw_ir(:,:,i + diff), 0);
+                imagesc(diff_img);
             end
             
             if i == 1
@@ -67,14 +66,11 @@ while(i < (len - show_differences)) & (ishandle(fig) == 1)
             
         elseif ir_dimenstions == 4
             
-            if show_differences == 0
+            if diff == 0
                 imagesc(raw_ir(:,:,:,i));
             else
-                diff_img = abs(raw_ir(:,:,:,i) - raw_ir(:,:,:,i + show_differences));
-                mini = min(min(diff_img));
-                maxi = max(max(diff_img));
-                diff_img_norm = 255 * (diff_img - mini)./(maxi-mini);
-                imagesc(diff_img_norm);
+                diff_img = calc_img_diff(raw_ir(:,:,:,i), raw_ir(:,:,:,i + diff), 0);
+                imagesc(diff_img);
             end
             
         end
@@ -83,15 +79,11 @@ while(i < (len - show_differences)) & (ishandle(fig) == 1)
         
         if vis_dimenstions == 3
             
-            if show_differences == 0
+            if diff == 0
                 imagesc(raw_vis(:,:,i)); % draw VIS image
             else
-                diff_img = abs(raw_vis(:,:,i) - raw_vis(:,:,i + show_differences));
-                mini = min(min(diff_img));
-                maxi = max(max(diff_img));
-                diff_img_norm = diff_img - mini;
-                diff_img_norm = 255*(diff_img_norm ./ maxi);
-                imagesc(diff_img_norm);
+                diff_img = calc_img_diff(raw_vis(:,:,i), raw_vis(:,:,i + diff), 0);
+                imagesc(diff_img);
             end
             
             if i == 1
@@ -100,34 +92,24 @@ while(i < (len - show_differences)) & (ishandle(fig) == 1)
             
         elseif vis_dimenstions == 4
             
-            if show_differences == 0
+            if diff == 0
                 imagesc(raw_vis(:,:,:,i)); % draw VIS image
-            else
-                diff_img = abs(raw_vis(:,:,:,i) - raw_vis(:,:,:,i + show_differences));
-                mini = min(min(diff_img));
-                maxi = max(max(diff_img));
-                diff_img_norm = diff_img - mini;
-                diff_img_norm = 255*(diff_img_norm ./ maxi);
-                imagesc(diff_img_norm);
+            else               
+                diff_img = calc_img_diff(raw_vis(:,:,:,i), raw_vis(:,:,:,i + diff), 0);
+                imagesc(diff_img);
             end
             
-            %else
-            % disp(['Error playing video # ', num2str(video_number)])
-            % return
         end
         
     elseif mode == 0 % single channel view
         
         if ir_dimenstions == 3
             
-            if show_differences == 0
+            if diff == 0
                 imagesc(raw_ir(:,:,i));
-            else
-                diff_img = abs(raw_ir(:,:,i) - raw_ir(:,:,i + show_differences));
-                mini = min(min(diff_img));
-                maxi = max(max(diff_img));
-                diff_img_norm = 255 * (diff_img - mini)./(maxi-mini);
-                imagesc(diff_img_norm);
+            else                
+                diff_img = calc_img_diff(raw_ir(:,:,i), raw_ir(:,:,i + diff), 0);
+                imagesc(diff_img);
             end
             
             if i == 1
@@ -136,29 +118,22 @@ while(i < (len - show_differences)) & (ishandle(fig) == 1)
             
         elseif ir_dimenstions == 4
             
-            if show_differences == 0
+            if diff == 0
                 imagesc(raw_ir(:,:,:,i));
-            else
-                diff_img = abs(raw_ir(:,:,:,i) - raw_ir(:,:,:,i + show_differences));
-                mini = min(min(diff_img));
-                maxi = max(max(diff_img));
-                diff_img_norm = 255 * (diff_img - mini)./(maxi-mini);
-                imagesc(diff_img_norm);
+            else                
+                diff_img = calc_img_diff(raw_ir(:,:,:,i), raw_ir(:,:,:,i + diff), 0);
+                imagesc(diff_img);
             end
             
         end
         
         if vis_dimenstions == 3
             
-            if show_differences == 0
+            if diff == 0
                 imagesc(raw_vis(:,:,i));
-            else
-                diff_img = abs(raw_vis(:,:,i) - raw_vis(:,:,i + show_differences));
-                mini = min(min(diff_img));
-                maxi = max(max(diff_img));
-                diff_img_norm = diff_img - mini;
-                diff_img_norm = 255*(diff_img_norm ./ maxi);
-                imagesc(diff_img_norm);
+            else               
+                diff_img = calc_img_diff(raw_vis(:,:,i), raw_vis(:,:,i + diff), 0);
+                imagesc(diff_img);
             end
             
             if i == 1
@@ -167,23 +142,19 @@ while(i < (len - show_differences)) & (ishandle(fig) == 1)
             
         elseif vis_dimenstions == 4
             
-            if show_differences == 0
+            if diff == 0
                 imagesc(raw_vis(:,:,:,i));
             else
-                diff_img = abs(raw_vis(:,:,:,i) - raw_vis(:,:,:,i + show_differences));
-                mini = min(min(diff_img));
-                maxi = max(max(diff_img));
-                diff_img_norm = diff_img - mini;
-                diff_img_norm = 255*(diff_img_norm ./ maxi);
-                imagesc(diff_img_norm);
+                diff_img = calc_img_diff(raw_vis(:,:,:,i), raw_vis(:,:,:,i + diff), 0);
+                imagesc(diff_img);
             end
             
         end
         
     end
     
-    sum_diff_img = sum_diff_img + uint16(diff_img);
-    frame_counter = frame_counter + 1;
+    %sum_diff_img = sum_diff_img + uint16(diff_img);
+    %frame_counter = frame_counter + 1;
     drawnow();
     t = toc(tStart);
     
@@ -193,10 +164,10 @@ while(i < (len - show_differences)) & (ishandle(fig) == 1)
             clc
             disp ([num2str(i/frame_rate), ' [Sec]']);
             
-            if show_differences == 0
+            if diff == 0
                 i = i + 1;
             else
-                i = i + show_differences;
+                i = i + diff;
             end
             
             tStart = tic;
@@ -205,10 +176,10 @@ while(i < (len - show_differences)) & (ishandle(fig) == 1)
             clc
             disp ([num2str(i/frame_rate), ' [Sec]']);
             
-            if show_differences == 0
+            if diff == 0
                 i = i + 1;
             else
-                i = i + show_differences;
+                i = i + diff;
             end
             
             tStart = tic;
@@ -219,10 +190,10 @@ while(i < (len - show_differences)) & (ishandle(fig) == 1)
         clc
         disp ([num2str(i/frame_rate), ' [Sec]']);
         
-        if show_differences == 0
+        if diff == 0
             i = i + 1;
         else
-            i = i + show_differences;
+            i = i + diff;
         
         end
         tStart = tic;

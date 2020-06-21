@@ -44,8 +44,8 @@ for i=1:1:exp_num
     colorbar;
 
     title(['Video number: ' num2str(video_num)]); % print signal's title
-    xlabel('Frequency [Hz]');
-    ylabel('A.U');
+    xlabel('Time [Sec]');
+    ylabel('Frequency [Hz]');
     axis on;
     if length(freq_limit) == 2
         ylim(freq_limit); % set x axis limit
