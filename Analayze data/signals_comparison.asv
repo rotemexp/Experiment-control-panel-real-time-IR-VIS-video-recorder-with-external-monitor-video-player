@@ -61,7 +61,7 @@ exp_num = size(signals, 2);
 batch = 1;
 sub_count = 1;
 if length(cutoff_freq) == 1
-    lambda = [num2str(cutoff_freq), ' Hz'];
+    lambda = num2str(cutoff_freq);
 else
     lambda = [num2str(cutoff_freq(1)), '-', num2str(cutoff_freq(end)), ' Hz'];
 end
@@ -120,9 +120,9 @@ for i=1:exp_num
         batch = batch + 1;
         sub_count = 1;
         str = ['Files IDX: ', num2str(files2process(1)), '-', num2str(files2process(end)),...
-            ', Videos: ', num2str(vids2process(1)), '-', num2str(vids2process(end)),...
-            ', Channel: ', channel ,', Filter: ', num2str(filter_type),...
-            ', \lambda: ', lambda,  ', Batch: ', num2str(batch)];
+    ', Videos: ', num2str(vids2process(1)), '-', num2str(vids2process(end)),...
+    ', Channel: ', channel ,', Filter: ', num2str(filter_type),...
+    ', \lambda: ', lambda,  ', Batch: ', num2str(batch)];
         figure('Name', str); % opens a new figure window
         sgtitle(str); % plots the idx-title
     end

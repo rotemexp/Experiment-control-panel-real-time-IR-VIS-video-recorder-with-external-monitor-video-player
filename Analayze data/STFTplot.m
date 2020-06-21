@@ -5,7 +5,13 @@ exp_num = numel(data); % find number of videos in recieved data
 
 batch = 1;
 sub_count = 1;
-str = ['File: ', data{1}.file_name, ', Channel: ', channel ,', Batch: ', num2str(batch)];
+if length(cutoff_freq) == 1
+    lambda = [num2str(cutoff_freq), ' Hz'];
+else
+    lambda = [num2str(cutoff_freq(1)), '-', num2str(cutoff_freq(end)), ' Hz'];
+end
+str = ['File: ', data{1}.file_name, ', Channel: ', channel ,', Filter: ', num2str(filter_type),...
+    ', \lambda: ', lambda, ', Batch: ', num2str(batch)];
 figure('Name', str); % opens a new figure window
 sgtitle(str); % plots the idx-title
 
@@ -22,7 +28,7 @@ for i=1:1:exp_num
     if strcmp(filter_type, 'low') || strcmp(filter_type, 'high') ||...
             strcmp(filter_type, 'bandpass') || strcmp(filter_type, 'median') ||...
             strcmp(filter_type, 'dc') % 'low' / 'high' / 'bandpass' / 'median' / 'no'  % 'low' / 'high' / 'bandpass' / 'median' / 'no' 
-        signal = filterit(signal, frame_rate, filter_type, cutoff_freq);
+        signal = filterit(signal, frame_rate, filter_type, cutoff_freq, 1);
     end
     
     len = length(signal);
@@ -47,6 +53,7 @@ for i=1:1:exp_num
     xlabel('Time [Sec]');
     ylabel('Frequency [Hz]');
     axis on;
+    
     if length(freq_limit) == 2
         ylim(freq_limit); % set x axis limit
     else
@@ -57,7 +64,8 @@ for i=1:1:exp_num
     if mod(i,sub) == 0 && i ~= exp_num
         batch = batch + 1;
         sub_count = 1;
-        str = ['File: ', data{1}.file_name, ', Channel: ', channel ,', Batch: ', num2str(batch)];
+        str = ['File: ', data{1}.file_name, ', Channel: ', channel ,', Filter: ', num2str(filter_type),...
+            ', \lambda: ', lambda, ', Batch: ', num2str(batch)];
         figure('Name', str); % opens a new figure window
         sgtitle(str); % plots the idx-title
     end
