@@ -42,6 +42,9 @@ if properties.VIS_camera == 1 && err == 0
     catch
         err = status(app, 'Error connecting to VIS camera.', 'r', 1, 1);
     end
+    
+else
+    cam = 0;
 end
 
 %% Initializing VLC player and playlist files
@@ -49,8 +52,12 @@ if properties.playVideofiles == 1 && err == 0
     
     try
         err = status(app, 'Initializing VLC player and playlist video files...', 'g', 1, 0);
-        v = VLC(); % creating VLC object
-        v.play('black.png'); % display black screen
+        vlc = VLC(); % creating VLC object
+        if properties.initialIntroScreen == 0
+            vlc.play('black.png'); % display black screen
+        else
+            vlc.play('Intro_msg.png'); % display black screen
+        end
     catch
         err = status(app, 'Error connecting to VLC player.', 'r', 1, 1);
     end
@@ -79,6 +86,7 @@ if properties.playVideofiles == 1 && err == 0
     
 else
     
+    vlc = 0;
     black_record = 0; % save frames during the whole time
     
 end
@@ -201,9 +209,9 @@ end
 
 if properties.warm_up == 1 && err == 0 % delay recording if needed
     if properties.VIS_camera == 1
-        err = warm_up(app, properties, cam);
+        err = warm_up(app, properties, cam, vlc);
     else
-        err = warm_up(app, properties);
+        err = warm_up(app, properties, cam, vlc);
     end
     tStart = tic;
 end
@@ -314,7 +322,7 @@ while(viewer_is_running) % main loop
     
     if properties.playVideofiles == 1
         
-        if t(idx) - t(1) >= properties.initialBlackScreen*1000 && playFlag == 2 % keeps initial black screen
+        if t(idx) - t(1) >= properties.initialIntroScreen*1000 && playFlag == 2 % keeps initial black screen
             playFlag = 0;
         end
         
@@ -341,7 +349,7 @@ while(viewer_is_running) % main loop
                     catch
                     end
                     
-                    v.play([playlist(video_idx).folder, '\', playlist(video_idx).name]);
+                    vlc.play([playlist(video_idx).folder, '\', playlist(video_idx).name]);
                     playlist(video_idx).startTime = toc(tStart); % saves time stamp to playlist
                     playlist(video_idx).startFrame = saved_frames_counter + 1; % saves start frame to playlist
                     playFlag = 1; % marks next time to do a black screen
@@ -358,7 +366,7 @@ while(viewer_is_running) % main loop
                 catch
                 end
                 
-                v.play([playlist(video_idx).folder, '\', playlist(video_idx).name]);
+                vlc.play([playlist(video_idx).folder, '\', playlist(video_idx).name]);
                 playlist(video_idx).startTime = toc(tStart); % saves time stamp to playlist
                 playlist(video_idx).startFrame = saved_frames_counter + 1; % saves start frame to playlist
                 playFlag = 1; % marks next time to do a black screen
@@ -372,7 +380,7 @@ while(viewer_is_running) % main loop
         if t(idx) - t(tLast_play) >= properties.playTime*1000 && playFlag == 1 % checks if elpased time is larger then X
             
             err = status(app, 'Displaying black screen.', 'g', 1, 0);
-            v.play('black.png'); % display black screen
+            vlc.play('black.png'); % display black screen
             playlist(video_idx).endTime = toc(tStart); % saves time stamp to playlist
             playlist(video_idx).endFrame = saved_frames_counter; % saves end frame to playlist
             video_idx = video_idx + 1; % new line at playlist structure
@@ -441,7 +449,7 @@ while(viewer_is_running) % main loop
         end
         
         if properties.playVideofiles == 1 && properties.verifyFullscreen == 1
-            v.Fullscreen = 'on'; % makes sure VLC player is at fullscreen mode (every second)
+            vlc.Fullscreen = 'on'; % makes sure VLC player is at fullscreen mode (every second)
         end
         
         if properties.save_data == 1
@@ -475,7 +483,7 @@ end % end main loop
 %% Adds data to the saved file
 
 if properties.playVideofiles == 1 && err ~= 1
-    v.quit(); % close VLC player
+    vlc.quit(); % close VLC player
 end
 
 if properties.save_data == 1 && err ~= 1
@@ -523,7 +531,7 @@ try
         clear('cam'); % disconnect from VIS camera
     end
     if properties.playVideofiles == 1
-        v.quit(); % close VLC player
+        vlc.quit(); % close VLC player
     end
 catch
 end
