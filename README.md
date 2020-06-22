@@ -15,7 +15,7 @@ Run analyze.mat to start.
 If using DSLR or mirrorless camera, with USB-HDMI adapter: 
 It is best to record the face video's with F/# value not too low! (about 2.2 - 2.8 should be ok) so the whole face will be kept in focus during the recording. It is also reccomended to use as low ISO value as possible, to reduce sensor noise - so good lightning is required for that.
 
-I reccomend using ELP USB camera, with manual optical zoom and focus, based on the sensor: Sony IMX179, link for the camera:
+It is also possible to use ELP USB camera, with manual optical zoom and focus, based on the sensor: Sony IMX179, link for the camera:
 https://www.amazon.com/gp/product/B07R4CLRQH/ref=ppx_yo_dt_b_asin_title_o02_s00?ie=UTF8&psc=1
 
 # Infrared camera:
