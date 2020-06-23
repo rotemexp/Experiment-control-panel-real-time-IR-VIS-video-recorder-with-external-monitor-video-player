@@ -65,12 +65,10 @@ if properties.playVideofiles == 1 && err == 0
         err = status(app, 'Error connecting to VLC player.', 'r', 1, 1);
     end
     
-    
     if properties.popup == 1  % if popup is desired - get location and call function
         intro_popup_fig = popup_fig_finder(app, 'intro_popup.mlapp', 'Intro Pop-up', true); % opens popup UI figure with always-on-top mode
-        playFlag = 3;
+        playFlag = 3; % 3 stands for: waiting for user to press OK button on the intro pop-up window.
     end
-    
     
     %try
     
@@ -194,7 +192,7 @@ delay_corrector = str2double(app.FPSdelaycorrectorEditField.Value);
 delay_corrector_step = str2double(app.FPSdelaycorrectorstepEditField.Value);
 
 if ~exist('playFlag', 'var')
-    playFlag = 2;
+    playFlag = 2; % 2 stands for initial intro screen mode
 end
 
 if ~exist('playlist', 'var')
