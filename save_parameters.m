@@ -8,7 +8,10 @@ if properties.save_data == 1 && properties.popup == 1 % case there was a questio
     properties.feel = uint8(feedback.feel);
     properties.wake = uint8(feedback.wake);
     properties.posneg = uint8(feedback.posneg);
-    
+    properties.age = feedback.age;
+    properties.sex = feedback.sex;
+    properties.orientation = feedback.orientation;
+
 end
 
 if properties.playVideofiles == 1

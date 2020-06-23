@@ -1,6 +1,6 @@
 function [posneg, wake, feel] = collect_feedback(app)
 
-feel = zeros(1,5);
+feel = zeros(1,6);
 posneg = 0;
 wake = 0;
 
@@ -58,6 +58,9 @@ if app.feel_4.Value == 1
 end
 if app.feel_5.Value == 1
     feel(5) = 1;
+end 
+if app.feel_6.Value == 1
+    feel(6) = 1;
 end 
 
 end

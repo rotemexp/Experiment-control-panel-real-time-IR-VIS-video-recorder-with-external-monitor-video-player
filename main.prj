@@ -1,5 +1,5 @@
 <deployment-project plugin="plugin.ezdeploy" plugin-version="1.0">
-  <configuration build-checksum="3991418259" file="C:\Users\saul6\Documents\Electrooptical Eng\Thesis\MATLAB\Record and Analayze\main.prj" location="C:\Users\saul6\Documents\Electrooptical Eng\Thesis\MATLAB\Record and Analayze" name="main" preferred-package-location="C:\Users\saul6\Documents\Electrooptical Eng\Thesis\MATLAB\Record and Analayze\main\for_redistribution" preferred-package-type="package.type.exe" target="target.ezdeploy.standalone" target-name="Application Compiler">
+  <configuration build-checksum="2704151897" file="C:\Users\saul6\Documents\Electrooptical Eng\Thesis\MATLAB\Record and Analayze\main.prj" location="C:\Users\saul6\Documents\Electrooptical Eng\Thesis\MATLAB\Record and Analayze" name="main" preferred-package-location="C:\Users\saul6\Documents\Electrooptical Eng\Thesis\MATLAB\Record and Analayze\main\for_redistribution" preferred-package-type="package.type.exe" target="target.ezdeploy.standalone" target-name="Application Compiler">
     <param.appname>main</param.appname>
     <param.icon />
     <param.icons />
@@ -45,11 +45,7 @@ Written for a combined reaserch of the psycology and the electrical engineering 
 	 
  Input Arguments 
 	 -?  print help on how to use the application 
-	 input arguments 
- Description 
- 	 Thermal and Visible video recorder software and player, designed to work with up to 2 cameras - Infrared and visible while playing emotions stimulating videos on another screen.
-
-Written for a combined reaserch of the psycology and the electrical engineering department at Ben Gurion Univesity of the Negev.</param.help.text>
+	 input arguments</param.help.text>
     <unset>
       <param.icon />
       <param.icons />
@@ -125,6 +121,7 @@ Written for a combined reaserch of the psycology and the electrical engineering 
       <file>C:\ProgramData\MATLAB\SupportPackages\R2020a\toolbox\matlab\webcam\supportpackages\+matlab\+webcam\+internal\webcamDesktop.p</file>
       <file>C:\ProgramData\MATLAB\SupportPackages\R2020a\toolbox\matlab\webcam\supportpackages\+matlab\+webcam\+internal\webcamOnline.p</file>
       <file>C:\ProgramData\MATLAB\SupportPackages\R2020a\toolbox\matlab\webcam\supportpackages\@webcam\webcam.m</file>
+      <file>${PROJECT_ROOT}\avoidOverwrite.m</file>
     </fileset.depfun>
     <build-deliverables>
       <file location="${PROJECT_ROOT}\main\for_testing" name="splash.png" optional="false">C:\Users\saul6\Documents\Electrooptical Eng\Thesis\MATLAB\Record and Analayze\main\for_testing\splash.png</file>
