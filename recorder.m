@@ -7,7 +7,7 @@ global IRInterface; % initialize the interface as a global variable
 global feedback;
 feedback.posneg = 0;
 feedback.wake = 0;
-feedback.feel = zeros(1,5);
+feedback.feel = zeros(1,6);
 feedback.status = 0;
 feedback.age = 0;
 feedback.sex = 'nan';
