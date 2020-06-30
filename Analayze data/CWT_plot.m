@@ -4,66 +4,79 @@ exp_num = numel(data); % find number of videos in recieved data
 
 batch = 1;
 sub_count = 1;
-str = ['File: ', data{1}.file_name, ', Channel: ', channel ,', Batch: ', num2str(batch)];
+counter = 1;
+if length(cutoff_freq) == 1
+    lambda = [num2str(cutoff_freq), ' Hz'];
+else
+    lambda = [num2str(cutoff_freq(1)), '-', num2str(cutoff_freq(end)), ' Hz'];
+end
+str = ['File: ', data{1}.file_name, ', Channel: ', channel ,', Filter: ', num2str(filter_type),...
+    ', \lambda: ', lambda, ', Batch: ', num2str(batch)];
 figure('Name', str); % opens a new figure window
 sgtitle(str); % plots the idx-title
 
 for i=1:1:exp_num
     
-    video_num = data{i}.vid_num;
-    eval(['signal = data{i}.', channel, ';']); % get the desired signal
-    frame_rate = data{1}.play_list(i,8);
-    
-    if size(signal, 1) ~= 1
-        signal = signal';
-    end
-    
-    if strcmp(filter_type, 'low') || strcmp(filter_type, 'high') ||...
-            strcmp(filter_type, 'bandpass') || strcmp(filter_type, 'median') ||...
-            strcmp(filter_type, 'dc') % 'low' / 'high' / 'bandpass' / 'median' / 'no'  % 'low' / 'high' / 'bandpass' / 'median' / 'no'
-        signal = filterit(signal, frame_rate, filter_type, cutoff_freq);
-    end
-    
-    len = length(signal);
-    
-    if numel(filter_bank.freq_limit) == 2
-        freq_limit = filter_bank.freq_limit;
-    else
-        freq_limit = [0, frame_rate/2];
-    end
-    
-    subplot(ceil(sqrt(sub)), round(sqrt(sub)), sub_count); % create subplot
-
-    fb = cwtfilterbank('SamplingFrequency',frame_rate,'FrequencyLimits',freq_limit, ...
-        'SignalLength',len,'WaveletParameters',[filter_bank.gamma, filter_bank.timeBandwidth],...
-        'VoicesPerOctave',filter_bank.VoicesPerOctave); % prepares the CWT filter bank
-    
-    [tfr, frq] = cwt(double(signal),'FilterBank',fb); % 'morse', 'amor', and 'bump', specify the Morse, Morlet (Gabor), and bump wavelets respectively
-    
-    tvec = (linspace(0, len, len) + data{i}.start_time) ./ frame_rate; % create the time axis vector
-    
-    surface(tvec, frq, abs(tfr))
-    title(['Video number: ' num2str(video_num)]); % print signal's title
-    xlabel('Time [sec]');
-    ylabel('Frequency [Hz]');
-    shading interp
-    colorbar;
-    axis on;
-    xlim([1, len/frame_rate]);
-    if ndims(freq_limit) == 2
-        ylim(freq_limit); % set x axis limit
-    else
-        ylim([0, frq_spect(end)]); % set x axis limit
-    end
-    
-
-    sub_count = sub_count + 1;
-    if mod(i,sub) == 0 && i ~= exp_num
-        batch = batch + 1;
-        sub_count = 1;
-        str = ['File: ', data{1}.file_name, ', Channel: ', channel ,', Batch: ', num2str(batch)];
-        figure('Name', str); % opens a new figure window
-        sgtitle(str); % plots the idx-title
+    if ~isempty(data{i})
+        
+        var_name = [extractBefore(data{i}.var_name, '_'), '\_', extractAfter(data{i}.var_name, '_')];
+        
+        eval(['signal = data{i}.', channel, ';']); % get the desired signal
+        frame_rate = data{1}.play_list(data{i}.play_order, 8);
+        
+        if size(signal, 1) ~= 1
+            signal = signal';
+        end
+        
+        if strcmp(filter_type, 'low') || strcmp(filter_type, 'high') ||...
+                strcmp(filter_type, 'bandpass') || strcmp(filter_type, 'median') ||...
+                strcmp(filter_type, 'dc') % 'low' / 'high' / 'bandpass' / 'median' / 'no'  % 'low' / 'high' / 'bandpass' / 'median' / 'no'
+            signal = filterit(signal, frame_rate, filter_type, cutoff_freq, 1);
+        end
+        
+        len = length(signal);
+        
+        if numel(filter_bank.freq_limit) == 2
+            freq_limit = filter_bank.freq_limit;
+        else
+            freq_limit = [0, frame_rate/2];
+        end
+        
+        subplot(ceil(sqrt(sub)), round(sqrt(sub)), sub_count); % create subplot
+        
+        fb = cwtfilterbank('SamplingFrequency',frame_rate,'FrequencyLimits',freq_limit, ...
+            'SignalLength',len,'WaveletParameters',[filter_bank.gamma, filter_bank.timeBandwidth],...
+            'VoicesPerOctave',filter_bank.VoicesPerOctave); % prepares the CWT filter bank
+        
+        [tfr, frq] = cwt(double(signal),'FilterBank',fb); % 'morse', 'amor', and 'bump', specify the Morse, Morlet (Gabor), and bump wavelets respectively
+        
+        tvec = (linspace(0, len, len) + data{i}.start_time) ./ frame_rate; % create the time axis vector
+        
+        surface(tvec, frq, abs(tfr))
+        title(['Video file: ', var_name]); % print signal's title
+        xlabel('Time [sec]');
+        ylabel('Frequency [Hz]');
+        shading interp
+        colorbar;
+        axis on;
+        xlim([1, len/frame_rate]);
+        
+        if ndims(freq_limit) == 2
+            ylim(freq_limit); % set x axis limit
+        else
+            ylim([0, frq_spect(end)]); % set x axis limit
+        end
+        
+        sub_count = sub_count + 1;
+        if mod(counter,sub) == 0 && counter ~= exp_num
+            batch = batch + 1;
+            sub_count = 1;
+            str = ['File: ', data{1}.file_name, ', Channel: ', channel ,', Filter: ', num2str(filter_type),...
+                ', \lambda: ', lambda, ', Batch: ', num2str(batch)];
+            figure('Name', str); % opens a new figure window
+            sgtitle(str); % plots the idx-title
+        end
+        counter = counter + 1;
     end
     
 end

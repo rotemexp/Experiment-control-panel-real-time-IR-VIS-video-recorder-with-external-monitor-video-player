@@ -1,6 +1,6 @@
-function play(file2load, channel, video_number, fast_play, segment_time, diff)
+function play(file2load, channel, video_number, fast_play, segment_time, diff, order_vid_idx)
 
-[raw_vis, raw_ir, properties] = get_raw_vid(file2load, video_number, channel); % get video from data file
+[raw_vis, raw_ir, var_name, properties] = get_raw_vid(file2load, video_number, channel, order_vid_idx); % get video from data file
 
 if ndims(raw_vis) > 2 & ndims(raw_ir) > 2  % checks if VIS camera data file have been loaded
     vis_dimenstions = ndims(raw_vis);
@@ -34,8 +34,8 @@ end
 
 i = 1;
 fig = figure();
+fig.Name = ['Video file: ', var_name]; % print signal's title
 tStart = tic;
-frame_counter = 0;
 
 if vis_dimenstions == 3     
     sum_diff_img = uint8(zeros(size(raw_vis(:,:,1))));
