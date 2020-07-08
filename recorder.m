@@ -214,10 +214,6 @@ if properties.VIS_camera == 0 && properties.IR_camera == 0 && err == 0
     err = status(app, 'No camera was selected.', 'r', 1, 1);
 end
 
-if properties.IR_camera == 1 && err == 0
-    IRViewer.trigger_shutter_flag(); % triggers flag (temperature drift reset)
-end
-
 if properties.warm_up == 1 && err == 0 % delay recording if needed
     if properties.VIS_camera == 1
         err = warm_up(app, properties, cam, vlc);
@@ -227,7 +223,7 @@ if properties.warm_up == 1 && err == 0 % delay recording if needed
     tStart = tic;
 end
 
-if properties.IR_camera == 1
+if properties.IR_camera == 1 && err == 0
     IRViewer.trigger_shutter_flag(); % triggers flag (temperature drift reset)
 end
 
