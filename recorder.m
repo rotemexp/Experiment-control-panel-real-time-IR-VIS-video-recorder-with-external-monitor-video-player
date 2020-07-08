@@ -7,7 +7,7 @@ global IRInterface; % initialize the interface as a global variable
 global feedback;
 feedback.posneg = 0;
 feedback.wake = 0;
-feedback.feel = zeros(1,6);
+feedback.feel = zeros(1, 6);
 feedback.status = 0;
 feedback.age = 0;
 feedback.sex = 'nan';
@@ -227,6 +227,10 @@ if properties.warm_up == 1 && err == 0 % delay recording if needed
     tStart = tic;
 end
 
+if properties.IR_camera == 1
+    IRViewer.trigger_shutter_flag(); % triggers flag (temperature drift reset)
+end
+
 if properties.save_data == 1 && playFlag == 2 && err == 0 
     err = status(app, 'Recording...', 'g', 1, 0);
 elseif properties.save_data == 0 && playFlag == 2 && err == 0
@@ -356,9 +360,9 @@ while(viewer_is_running) % main loop
         if (t(idx) - t(tLast_play) >= properties.pauseTime*1000 && playFlag == 0 &&...
                 videosPlayed < list_length) || (playFlag == 0 && videosPlayed == 0) % checks if it's time to play a video
             
-            %properties.flag_IR_camera_on_black == 1 && properties.IR_camera == 1
-            %    IRViewer.trigger_shutter_flag(); % triggers flag (temperature drift reset)
-            % end
+            if properties.flag_IR_camera_on_black == 1 && properties.IR_camera == 1
+                IRViewer.trigger_shutter_flag(); % triggers flag (temperature drift reset)
+            end
             
             if properties.popup == 1 % case need to wait for popup feedback
                 
@@ -418,9 +422,9 @@ while(viewer_is_running) % main loop
             playFlag = 0; % marks next time to play a video
             tLast_play = idx; % saves the index of the last time found
             
-            if properties.flag_IR_camera_on_black == 1 && properties.IR_camera == 1
-                IRViewer.trigger_shutter_flag(); % triggers flag (temperature drift reset)
-            end
+%             if properties.flag_IR_camera_on_black == 1 && properties.IR_camera == 1
+%                 IRViewer.trigger_shutter_flag(); % triggers flag (temperature drift reset)
+%             end
             
             if video_idx <= length(playlist) && properties.play_mode == 0
                 properties.playTime = playlist(video_idx).duration; % save length of next video - if exists
