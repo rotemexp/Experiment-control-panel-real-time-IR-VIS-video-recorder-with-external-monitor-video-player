@@ -1,12 +1,20 @@
-function signals_comparison(channel, sub, filter_type, cutoff_freq, folder, files2process, vids2process)
+function signals_comparison(channel, sub, filter_type, cutoff_freq, folder, files2process, roi_idx, group_by)
+
+try
+    load('videos_idx_emotions', 'videos_idx_emotions');
+catch
+    disp('Error loading videos indexes - emotions correlation data from file')
+end
 
 if folder(end) ~= '\' % case last backslesh is missing
     folder = [folder, '\'];
 end
 
+channel = upper(channel);
 dir_file_list = dir(folder);
 dir_file_list = dir_file_list(~ismember({dir_file_list.name},{'.','..'}));
 files2process_run = 1;
+vids2process = 1:1000;
 
 for k = files2process
     
@@ -21,29 +29,29 @@ for k = files2process
             file2load = fullfile([folder, current_file]);
             
             if strcmp(channel, 'VISIR')
-                load(file2load, 'vis', 'ir', 'remarks', 'properties');
-            elseif strcmp(channel, 'IR')
-                load(file2load, 'ir', 'remarks', 'properties');
-            elseif strcmp(channel, 'VIS')
-                load(file2load, 'vis', 'remarks', 'properties');
-            end
-            
-            if exist('vis', 'var') & exist('ir', 'var')
                 % need to write a proper way to deal with this situation
+                %load(file2load, 'vis', 'ir', 'remarks', 'properties');
                 disp('Cannot display both VIS & IR data')
                 return
-            elseif exist('ir', 'var')
+            elseif strcmp(channel, 'IR')
+                load(file2load, 'ir', 'remarks', 'properties');
                 eval('data = ir;');
-            elseif exist('vis', 'var')
+            elseif strcmp(channel, 'VIS')
+                load(file2load, 'vis', 'remarks', 'properties');
                 eval('data = vis;');
+            end
+            
+            if strcmp(group_by, 'Played order') || strcmp(group_by, 'Video index')...
+                    || strcmp(group_by, 'Emotions')
+                data = flipper(data, group_by); % flip data order and remove empty spaces
             end
             
         end
         
         if i <= length(data) && ~isempty(data{i})
 
-            eval(['sig = data{i}.', channel, ';']); % get the desired sig
-            signals(1:length(sig),i, files2process_run) = sig;
+            eval('sig = data{i}.sig;'); % get the desired sig
+            signals(1:length(sig),i, files2process_run) = sig(:, roi_idx);
             fps = properties.play_list(data{i}.play_order, 8);
             tvec(1:length(signals),i, files2process_run) = linspace(0, length(signals), length(signals)) ./ fps; % create the time axis vector
             
@@ -58,6 +66,7 @@ for k = files2process
 end
 
 exp_num = size(signals, 2);
+vids2process = 1:exp_num;
 batch = 1;
 sub_count = 1;
 counter = 1;
@@ -87,7 +96,7 @@ for i=1:exp_num
     if ~isempty(data{i})
         
         var_name = [extractBefore(data{i}.var_name, '_'), '\_', extractAfter(data{i}.var_name, '_')];
-        eval(['sig = data{i}.', channel, ';']); % get the desired sig
+        eval('sig = data{i}.sig;'); % get the desired sig
         frame_rate = data{i}.play_list(data{i}.play_order, 8);
         subplot(ceil(sqrt(sub)),round(sqrt(sub)),sub_count); % create subplot
         
@@ -106,7 +115,10 @@ for i=1:exp_num
             current_tvec = current_tvec(current_tvec ~=0);
             current_tvec = [0; current_tvec];
             
-            plot(current_tvec, current_sig); % plot the sig
+            if ~isempty(current_sig)
+                plot(current_tvec, current_sig); % plot the sig
+            end
+            
             hold on;
         end
         
@@ -114,7 +126,18 @@ for i=1:exp_num
             legend(dir_file_list(files2process).name,'Position',[-0.02, 0.8, 0.15, 0.15]);
         end
         
-        title(['Video file: ', var_name]); % print signal's title
+        vid_idx = str2double(extractAfter(var_name, '_'));
+        
+        if exist('videos_idx_emotions', 'var')
+            if vid_idx <= length(videos_idx_emotions)
+                title(['Video file: ', var_name, ', (', char(videos_idx_emotions(vid_idx, 2)) ,')']); % print signal's title
+            else
+                title(['Video file: ', var_name]); % print signal's title
+            end
+        else
+            title(['Video file: ', var_name]); % print signal's title
+        end
+        
         xlabel('Time [sec]');
         xlim([0, current_tvec(end)]); % set x axis limit
         axis on;

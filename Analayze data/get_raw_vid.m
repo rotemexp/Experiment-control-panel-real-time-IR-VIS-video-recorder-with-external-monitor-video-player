@@ -2,9 +2,17 @@ function [raw_vis, raw_ir, var_name, properties] = get_raw_vid(file2load, idx, c
 
 looking4 = idx;
 idx = 1;
-file_details = whos('-file', file2load); % get variables list from data file
-max_data_vars = round((numel(file_details)-1)/2);
 vid_num = 0;
+file_details = whos('-file', file2load); % get variables list from data file
+
+ir_check = extractBefore(file_details(1).name, '_');
+vis_check = extractBefore(file_details(end-1).name, '_');
+
+if strcmp(ir_check, 'IR') && strcmp(vis_check, 'VIS')
+    max_data_vars = round((numel(file_details)-1)/2);
+else
+    max_data_vars = round((numel(file_details)-1));
+end
 
 while idx <= max_data_vars && vid_num ~= looking4
 

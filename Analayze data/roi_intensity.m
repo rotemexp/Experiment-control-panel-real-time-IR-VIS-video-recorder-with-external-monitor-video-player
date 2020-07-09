@@ -1,12 +1,12 @@
 function data = roi_intensity(vid, properties, file_name, var_name, vid_num, N, start_time,...
-    end_time, enhance_image, crop_cors, newFrameRate, final_img_disp)
+    end_time, enhance_image, crop_cors, newFrameRate, final_img_disp, roi_labels, videos_idx_emotions)
 %% Pre-flight check
 
 if ndims(vid) == 3
-    RGB = 0;
+    dim4 = 0;
     len = size(vid,3); % get number of recorded frames
 elseif ndims(vid) == 4
-    RGB = 1;
+    dim4 = 1;
     len = size(vid,4); % get number of recorded frames
 else
     disp('No video file to process was found inside the selected data file') % no data file to process
@@ -24,19 +24,21 @@ end
 
 %% Prepare variables
 
+vid_play_order = str2double(extractBefore(var_name, '_'));
+
 if isfield(properties, 'play_list') == 1
     
     NaNidx = find(isnan(properties.play_list(:,8)),1); % check if there's NaN in the properties.timing data vector
     
-    if isempty(NaNidx) == 1
-        frameRate = mean(properties.play_list(:,8)); % calculate average frame rate of all indices
-    else
-        frameRate = mean(properties.play_list(1:NaNidx-1,8)); % calculate average frame rate until the NANs
-    end
+%     if isempty(NaNidx) == 1
+%         frameRate = mean(properties.play_list(:,8)); % calculate average frame rate of all indices
+%     else
+%         frameRate = mean(properties.play_list(1:NaNidx-1,8)); % calculate average frame rate until the NANs
+%     end
     
     if newFrameRate == 0 % case no need to change frame rate
         if properties.frame_rate == 0
-            properties.frame_rate = mean(properties.timing(:,1));
+            properties.frame_rate = properties.play_list(vid_play_order,8);
         else
             newFrameRate = properties.frame_rate;
         end
@@ -50,7 +52,7 @@ if isfield(properties, 'play_list') == 1
     
 else
     skipper = 1;
-    frameRate = mean(properties.raw_timing(:, 2));
+    %frameRate = mean(properties.raw_timing(:, 2));
 end
 
 if start_time == 0 % setting parameters to the desired begining
@@ -62,7 +64,7 @@ end
 if end_time == 0 % setting the end time
     
     if isfield(properties, 'play_list') == 1
-        end_time = sum(properties.play_list(:,2));
+        end_time = properties.play_list(vid_play_order,2);
     else
         end_time = (single(properties.t(end,1)) / 1000);
     end
@@ -82,7 +84,7 @@ if size(crop_cors, 2) == 4
 else
     ROIs_num = crop_cors;
     
-    if RGB == 1
+    if dim4 == 1
         frame = vid(:,:,:,frameStart); % color
     else
         frame = vid(:,:,frameStart); % gray
@@ -107,19 +109,19 @@ end
 numOfFrames = single(frameStop - frameStart + 1);
 k = 1;
 
-if RGB == 1
+if dim4 == 1
     data.R = zeros(numOfFrames, ROIs_num, 'single');
     data.G = zeros(numOfFrames, ROIs_num, 'single');
     data.B = zeros(numOfFrames, ROIs_num, 'single');
-else
-    data.sig = zeros(numOfFrames, ROIs_num, 'single');
 end
+
+data.sig = zeros(numOfFrames, ROIs_num, 'single');
 
 %% loop over the frames
 
 while k <= numOfFrames % running on each frame of the video file
     
-    if RGB == 1
+    if dim4 == 1
         frame = vid(:,:,:,k + frameStart - 1); % color
     else
         frame = vid(:,:,k + frameStart - 1); % gray
@@ -128,7 +130,7 @@ while k <= numOfFrames % running on each frame of the video file
     if strcmp(type, 'VIS')
         frame = im2double(frame); % reads current frame from video
     end
-    
+
     if enhance_image == 1
         frame = img_enhancement(frame); % calls image enhancement function
     end
@@ -137,53 +139,38 @@ while k <= numOfFrames % running on each frame of the video file
         
         cropped_frame{i} = imcrop(frame, crop_cors(i,:)); % cropping the frame
 
-        if RGB == 1
+        if dim4 == 1
             data.R(k,i) = intensity_calc(N, cropped_frame{i}(:,:,1), 0); % calculate averaged R channel intensity at ROI's
             data.G(k,i) = intensity_calc(N, cropped_frame{i}(:,:,2), 0); % calculate averaged G channel at ROI's
             data.B(k,i) = intensity_calc(N, cropped_frame{i}(:,:,3), 0); % calculate averaged B channel at ROI's
-        else
-            data.sig(k,i) = intensity_calc(N, cropped_frame{i}, 0); % calculate averaged intensity at ROI's
+        
+            cropped_frame{i} = rgb2gray(cropped_frame{i});
+            
         end
+        
+        data.sig(k,i) = intensity_calc(N, cropped_frame{i}, 0); % calculate averaged intensity at ROI's
 
     end
     k = k + 1;
 end % end while
 
-%% Add means of all
+%% UV transformation for color video
 
-if RGB == 1
+if dim4 == 1
     
     V = 1.5.*data.R + 2.*data.G - 1.5.*data.B;
     U = 3.*data.R - 2.*data.G;
     
     lambda = std(U) ./ std(V);
-    data.sig = U - lambda.*V; % final data matrix: equation 3 in the paper
+    data.sig_uv = U - lambda.*V; % final data matrix: equation 3 in the paper
 
-    data.R_avg = mean(data.R);
-    data.G_avg = mean(data.G);
-    data.B_avg = mean(data.B);
-    
-    data.R_max = max(data.R);
-    data.G_max = max(data.G);
-    data.B_max = max(data.B);
-
-    data.R_min = min(data.R);
-    data.G_min = min(data.G);
-    data.B_min = min(data.B);
-
-    data.R_std = std(data.R);
-    data.G_std = std(data.G);
-    data.B_std = std(data.B);
-    
 end
 
-data.sig_avg = mean(data.sig);
-data.sig_max = max(data.sig);
-data.sig_min = min(data.sig);
-data.sig_std = std(data.sig);
-    
 %% Parameters transfer
 
+data.process_time = datetime;
+data.process_time_unix = posixtime(datetime);
+data.roi_labels = roi_labels;
 data.type = type;
 data.crop_cors = crop_cors;
 data.play_order = uint8(str2double(extractBefore(var_name, '_')));
@@ -197,6 +184,12 @@ data.N = N;
 data.start_time = start_time;
 data.end_time = end_time;
 data.raw_timing = properties.raw_timing;
+
+if vid_num <= length(videos_idx_emotions)
+    data.expected_emotion = videos_idx_emotions(vid_num, 2);
+else
+    data.expected_emotion = 'nan';
+end
 
 if properties.playVideofiles == 1
     

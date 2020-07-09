@@ -1,9 +1,20 @@
-function signal_plot(data, channel, sub, frame_plot, filter_type, cutoff_freq)
+function signal_plot(data, channel, sub, frame_plot, filter_type, cutoff_freq, background_subtraction, group_by)
+
+if strcmp(group_by, 'Played order') || strcmp(group_by, 'Video index')...
+        || strcmp(group_by, 'Emotions')
+    data = flipper(data, group_by); % flip data order and remove empty spaces
+end
 
 exp_num = numel(data); % find number of videos in recieved data
 batch = 1;
 sub_count = 1;
 counter = 1;
+
+try
+    load('videos_idx_emotions', 'videos_idx_emotions');
+catch
+    disp('Error loading videos indexes - emotions correlation data from file')
+end
 
 if length(cutoff_freq) == 1
     lambda = [num2str(cutoff_freq), ' Hz'];
@@ -36,6 +47,12 @@ for i=1:exp_num
         tvec = linspace(0, length(signal), length(signal)) ./ frame_rate; % create the time axis vector
         tvec = tvec + data{i}.start_time;
         
+        if background_subtraction ~= 0
+            temp = signal(:,background_subtraction);
+            signal = signal - signal(:,background_subtraction);
+            signal(:,background_subtraction) = temp;
+        end
+        
         if strcmp(filter_type, 'low') || strcmp(filter_type, 'high') ||...
                 strcmp(filter_type, 'bandpass') || strcmp(filter_type, 'median') ||...
                 strcmp(filter_type, 'dc') % 'low' / 'high' / 'bandpass' / 'median' / 'no'
@@ -50,7 +67,18 @@ for i=1:exp_num
             legend(leg_list.value,'Position',[-0.02, 0.8, 0.15, 0.15]);
         end
         
-        title(['Video file: ', var_name]); % print signal's title
+        vid_idx = str2double(extractAfter(var_name, '_'));
+        
+        if exist('videos_idx_emotions', 'var')
+            if vid_idx <= length(videos_idx_emotions)
+                title(['Video file: ', var_name, ', (', char(videos_idx_emotions(vid_idx, 2)) ,')']); % print signal's title
+            else
+                title(['Video file: ', var_name]); % print signal's title
+            end
+        else
+            title(['Video file: ', var_name]); % print signal's title
+        end
+        
         xlabel('Time [sec]');
         xlim([0, tvec(end)]); % set x axis limit
         axis on;
