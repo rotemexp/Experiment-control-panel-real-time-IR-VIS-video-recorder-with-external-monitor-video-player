@@ -65,10 +65,10 @@ if properties.playVideofiles == 1 && err == 0
         err = status(app, 'Error connecting to VLC player.', 'r', 1, 1);
     end
     
-    if properties.popup == 1  % if popup is desired - get location and call function
-        intro_popup_fig = popup_fig_finder(app, 'intro_popup.mlapp', 'Intro Pop-up', true); % opens popup UI figure with always-on-top mode
-        playFlag = 3; % 3 stands for: waiting for user to press OK button on the intro pop-up window.
-    end
+    %     if properties.popup == 1  % if popup is desired - get location and call function
+    %         intro_popup_fig = popup_fig_finder(app, 'intro_popup.mlapp', 'Intro Pop-up', true); % opens popup UI figure with always-on-top mode
+    %         playFlag = 3; % 3 stands for: waiting for user to press OK button on the intro pop-up window.
+    %     end
     
     %try
     
@@ -123,7 +123,7 @@ if properties.save_data == 1 && err == 0
         end
         
     end
-
+    
     if properties.crop_cor ~= 0
         crop_vis_res = str2num(properties.crop_cor); % case should crop VIS image
         vis_res(1) = crop_vis_res(4) + 1;
@@ -175,6 +175,8 @@ end
 
 %% Setting frame loop parameters
 
+ready2end = 0;
+last_popup_stat = 0;
 timing = single(zeros(2,4));
 idx = 1;
 buff_idx = 0;
@@ -190,10 +192,7 @@ t_seg = zeros(2,1);
 tStart = tic;
 delay_corrector = str2double(app.FPSdelaycorrectorEditField.Value);
 delay_corrector_step = str2double(app.FPSdelaycorrectorstepEditField.Value);
-
-if ~exist('playFlag', 'var')
-    playFlag = 2; % 2 stands for initial intro screen mode
-end
+playFlag = 2; % 2 stands for initial intro screen mode
 
 if ~exist('playlist', 'var')
     playlist = 0;
@@ -227,12 +226,10 @@ if properties.IR_camera == 1 && err == 0
     IRViewer.trigger_shutter_flag(); % triggers flag (temperature drift reset)
 end
 
-if properties.save_data == 1 && playFlag == 2 && err == 0 
+if properties.save_data == 1 && playFlag == 2 && err == 0
     err = status(app, 'Recording...', 'g', 1, 0);
 elseif properties.save_data == 0 && playFlag == 2 && err == 0
     err = status(app, 'Playing live stream...', 'g', 1, 0);
-elseif playFlag == 3 && err == 0 
-    err = status(app, 'Waiting for intro pop-up...', 'g', 1, 0);
 end
 
 %% Frames loop
@@ -335,10 +332,8 @@ while(viewer_is_running) % main loop
     
     if properties.playVideofiles == 1
         
-        if playFlag == 3 && feedback.age ~= 0
-            playFlag = 2;
-        else
-            if playFlag == 3 && ishandle(intro_popup_fig) == 0
+        if videosPlayed == list_length && feedback.status == 0 && last_popup_stat == 1 && properties.popup == 1
+            if ishandle(intro_popup_fig) == 0 && feedback.age == 0 % re-open popup if it was closed by X and not by OK button
                 intro_popup_fig = popup_fig_finder(app, 'intro_popup.mlapp', 'Intro Pop-up', true); % opens popup UI figure with always-on-top mode
             end
         end
@@ -400,16 +395,15 @@ while(viewer_is_running) % main loop
         
         if t(idx) - t(tLast_play) >= properties.playTime*1000 && playFlag == 1 % checks if elpased time is larger then X
             
-            if videosPlayed == size(playlist, 2)
-                
-                err = status(app, 'Displaying last screen.', 'g', 1, 0);
-                vlc.play('final_msg.png'); % display last black screen
-                
-            else
+            err = status(app, 'Displaying black screen.', 'g', 1, 0);
+            vlc.play('black.png'); % display black screen
             
-                err = status(app, 'Displaying black screen.', 'g', 1, 0);
-                vlc.play('black.png'); % display black screen
-            
+            if properties.popup == 1 && feedback.status == 0 % if popup is desired - get location and call function
+                popup_fig = popup_fig_finder(app, 'popup_fig.mlapp', 'Popup_questions', true); % opens popup UI figure with always-on-top mode
+                feedback.status = 1;
+                if videosPlayed == list_length
+                    ready2end = 1;
+                end
             end
             
             playlist(video_idx).endTime = toc(tStart); % saves time stamp to playlist
@@ -418,30 +412,38 @@ while(viewer_is_running) % main loop
             playFlag = 0; % marks next time to play a video
             tLast_play = idx; % saves the index of the last time found
             
-%             if properties.flag_IR_camera_on_black == 1 && properties.IR_camera == 1
-%                 IRViewer.trigger_shutter_flag(); % triggers flag (temperature drift reset)
-%             end
+            %             if properties.flag_IR_camera_on_black == 1 && properties.IR_camera == 1
+            %                 IRViewer.trigger_shutter_flag(); % triggers flag (temperature drift reset)
+            %             end
             
-            if video_idx <= length(playlist) && properties.play_mode == 0
+            if video_idx <= list_length && properties.play_mode == 0
                 properties.playTime = playlist(video_idx).duration; % save length of next video - if exists
             end
             
-            if properties.popup == 1 && feedback.status == 0 % if popup is desired - get location and call function
-                popup_fig = popup_fig_finder(app, 'popup_fig.mlapp', 'Popup_questions', true); % opens popup UI figure with always-on-top mode
-                feedback.status = 1;
-            end
-            
-            if properties.saveONblack == 1 && properties.save_data == 1 % save buffer data
+            if properties.saveONblack == 1 && properties.save_data == 1  % save buffer data
+                
+                if videosPlayed == list_length && properties.popup == 0
+                    err = status(app, 'Displaying last screen.', 'g', 1, 0);
+                    vlc.play('final_msg.png'); % display last black screen
+                end
+                
                 err = save_buffer(app, properties, filename, playlist, buffer_VIS, buffer_IR, video_idx-1, buff_idx); % update data to mat file
                 buff_idx = 0;
             end
             
         end
         
+        if videosPlayed == list_length && feedback.status == 0 && last_popup_stat == 0 && ready2end == 1 && properties.popup == 1
+            err = status(app, 'Displaying last screen.', 'g', 1, 0);
+            vlc.play('final_msg.png'); % display last black screen
+            last_popup_stat = 1;
+            intro_popup_fig = popup_fig_finder(app, 'intro_popup.mlapp', 'Intro Pop-up', true); % opens popup UI figure with always-on-top mode
+        end
+        
         if t(idx) - t(tLast_play) >= properties.lastBlackScreen*1000 && videosPlayed == list_length && playFlag == 0
             
             if properties.save_data == 1 && properties.popup == 1
-                if feedback.status == 0
+                if feedback.status == 0 && feedback.age ~= 0
                     viewer_is_running = 0; % finish program
                 end
             else
