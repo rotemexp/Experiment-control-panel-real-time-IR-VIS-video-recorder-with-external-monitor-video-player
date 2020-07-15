@@ -11,8 +11,6 @@ t_seg = zeros(2,1);
 tStart = tic;
 idx = 1;
 run = 1;
-
-try
     
     while run == 1 && viewer_is_running == 1
         
@@ -55,8 +53,7 @@ try
         
         idx = idx + 1; % increas index
     end
-    
-    
+
     app.Status1.FontColor = [0.29,0.58,0.07]; % dark green
     if viewer_is_running == 0
         app.Status1.Value = sprintf('%s', 'program stoped.');
@@ -65,10 +62,7 @@ try
         app.Status1.Value = sprintf('%s', 'Warm up finished.');
         err = 0;
     end
-    drawnow(); % updates callback functions
     
-catch
-    err = status(app, 'Warm up error.', 'r', 1, 1);
-end
+    drawnow(); % updates callback functions
 
 end
