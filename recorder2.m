@@ -386,7 +386,7 @@ while(viewer_is_running) % main loop
             imagesc(subplot(1,2,1),frame_VIS); % draw VIS image
             imagesc(subplot(1,2,2),frame_IR); colormap(gray);% draw IR image
         elseif properties.RGB_camera == 0 && properties.NIR_camera && properties.LWIR_camera
-            imagesc(subplot(1,2,2),frame_NIR); % draw NIR image
+            imagesc(subplot(1,2,1),frame_NIR); % draw NIR image
             imagesc(subplot(1,2,2),frame_IR); colormap(gray);% draw IR image
         elseif properties.RGB_camera == 0 && properties.NIR_camera == 0 && properties.LWIR_camera == 1
             imagesc(frame_IR); colormap(gray);% draw IR image
