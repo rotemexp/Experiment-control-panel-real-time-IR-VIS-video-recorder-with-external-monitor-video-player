@@ -40,7 +40,7 @@ while run == 1 && viewer_is_running == 1
     end
     
     if properties.LWIR_camera == 1
-        if properties.tempORcolor == 1
+        if properties.LWIR_tempORcolor == 1
             frame_IR = (single(IRInterface.get_thermal() - 10000) ./ 100); % get gray image from IR camera
         else
             frame_IR = (IRInterface.get_palette()); % get color image from IR camera
