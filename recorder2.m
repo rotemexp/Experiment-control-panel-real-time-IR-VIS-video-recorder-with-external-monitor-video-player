@@ -188,7 +188,7 @@ if properties.save_data == 1 && err == 0
     
     if properties.LWIR_camera == 1
         
-        res = get_IR_resolution(properties, IRInterface); % getting the IR camera resolution
+        res = get_IR_resolution2(properties, IRInterface); % getting the IR camera resolution
         properties.IR_resolution = res;
         
         if properties.LWIR_tempORcolor == 1
