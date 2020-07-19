@@ -47,7 +47,7 @@ run = 1;
             end
         end
         
-        if properties.VIS_camera == 1
+        if properties.RGB_camera == 1
             frame_VIS = snapshot(cam); % get imgage from VIS camera
         end
         

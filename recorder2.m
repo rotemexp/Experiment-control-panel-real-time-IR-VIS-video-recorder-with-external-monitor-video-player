@@ -1,4 +1,4 @@
-function recorder(app, properties)
+function recorder2(app, properties)
 clc;
 %% Set global variables
 
@@ -121,7 +121,7 @@ end
 %% Saving data file
 if properties.save_data == 1 && err == 0
     
-    err = status(app, 'Creating data file to save videos to...', 'g', 1, 0);
+    err = status(app, 'Creating data file...', 'g', 1, 0);
     
     [~, dir_feedback, ~] = mkdir ('Recordings'); % creates dir if it doesn't exist yet
     
