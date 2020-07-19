@@ -180,7 +180,7 @@ if properties.save_data == 1 && err == 0
     
     if properties.NIR_camera == 1 && properties.NIR_camera2gray == 1
         buffer_NIR = zeros(nir_res(1), nir_res(2), properties.allocation,'uint8'); % gray
-    elseif properties.RGB_camera == 1 && properties.RGB_camera2gray == 0
+    elseif properties.NIR_camera == 1 && properties.NIR_camera2gray == 0
         buffer_NIR = zeros(nir_res(1), nir_res(2), 3, properties.allocation,'uint8'); % color
     else
         buffer_NIR = 0;
