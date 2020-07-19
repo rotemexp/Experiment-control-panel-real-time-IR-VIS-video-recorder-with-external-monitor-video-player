@@ -157,7 +157,7 @@ if properties.save_data == 1 && err == 0
     
     if properties.NIR_crop_cor ~= 0 & properties.NIR_camera == 1
         crop_nir_res = str2num(properties.NIR_crop_cor); % case should crop RGB camera frame
-        nir_res(1) = crop_nir_res(4) ;
+        nir_res(1) = crop_nir_res(4) + 1;
         nir_res(2) = crop_nir_res(3) + 1;
         properties.cropped_NIR_res(1) = crop_nir_res(4) + 1;
         properties.cropped_NIR_res(2) = crop_nir_res(3) + 1;
