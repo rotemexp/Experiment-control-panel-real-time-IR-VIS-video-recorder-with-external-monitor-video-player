@@ -144,7 +144,7 @@ if properties.save_data == 1 && err == 0
         
     end
     
-    if properties.RGB_crop_cor ~= 0 && properties.RGB_camera == 1
+    if properties.RGB_crop_cor ~= 0 & properties.RGB_camera == 1
         crop_rgb_res = str2num(properties.RGB_crop_cor); % case should crop RGB camera frame
         rgb_res(1) = crop_rgb_res(4) + 1;
         rgb_res(2) = crop_rgb_res(3) + 1;
@@ -155,7 +155,7 @@ if properties.save_data == 1 && err == 0
         rgb_res(2) = properties.RGB_resolution(2);
     end
     
-    if properties.NIR_crop_cor ~= 0 && properties.NIR_camera == 1
+    if properties.NIR_crop_cor ~= 0 & properties.NIR_camera == 1
         crop_nir_res = str2num(properties.NIR_crop_cor); % case should crop RGB camera frame
         nir_res(1) = crop_nir_res(4) ;
         nir_res(2) = crop_nir_res(3) + 1;
@@ -377,23 +377,59 @@ while(viewer_is_running) % main loop
         
         if properties.RGB_camera && properties.NIR_camera && properties.LWIR_camera
             imagesc(subplot(1,3,1),frame_VIS); % draw VIS image
+            if properties.RGB_camera2gray
+                colormap(gray);
+            end
             imagesc(subplot(1,3,2),frame_NIR); % draw NIR image
-            imagesc(subplot(1,3,3),frame_IR); colormap(gray);% draw IR image
+            if properties.NIR_camera2gray
+                colormap(gray);
+            end
+            imagesc(subplot(1,3,3),frame_IR); % draw IR image
+            if properties.LWIR_tempORcolor
+                colormap(gray);
+            end
         elseif properties.RGB_camera && properties.NIR_camera && properties.LWIR_camera == 0
             imagesc(subplot(1,2,1),frame_VIS); % draw VIS image
+            if properties.RGB_camera2gray
+                colormap(gray);
+            end
             imagesc(subplot(1,2,2),frame_NIR); % draw NIR image
+            if properties.NIR_camera2gray
+                colormap(gray);
+            end
         elseif properties.RGB_camera && properties.NIR_camera == 0 && properties.LWIR_camera
             imagesc(subplot(1,2,1),frame_VIS); % draw VIS image
+            if properties.RGB_camera2gray
+                colormap(gray);
+            end
             imagesc(subplot(1,2,2),frame_IR); colormap(gray);% draw IR image
+            if properties.LWIR_tempORcolor
+                colormap(gray);
+            end
         elseif properties.RGB_camera == 0 && properties.NIR_camera && properties.LWIR_camera
             imagesc(subplot(1,2,1),frame_NIR); % draw NIR image
+            if properties.NIR_camera2gray
+                colormap(gray);
+            end
             imagesc(subplot(1,2,2),frame_IR); colormap(gray);% draw IR image
+            if properties.LWIR_tempORcolor
+                colormap(gray);
+            end
         elseif properties.RGB_camera == 0 && properties.NIR_camera == 0 && properties.LWIR_camera == 1
             imagesc(frame_IR); colormap(gray);% draw IR image
+            if properties.LWIR_tempORcolor
+                colormap(gray);
+            end
         elseif properties.RGB_camera == 0 && properties.NIR_camera && properties.LWIR_camera == 0
             imagesc(frame_NIR); %colormap(gray);% draw NIR image
+            if properties.NIR_camera2gray
+                colormap(gray);
+            end
         elseif properties.RGB_camera && properties.NIR_camera == 0 && properties.LWIR_camera == 0
             imagesc(frame_VIS); %colormap(gray);% draw VIS image
+            if properties.RGB_camera2gray
+                colormap(gray);
+            end
         end
         
     end
