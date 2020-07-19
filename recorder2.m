@@ -144,24 +144,24 @@ if properties.save_data == 1 && err == 0
         
     end
     
-    if properties.RGB_crop_cor ~= 0
+    if properties.RGB_crop_cor ~= 0 && properties.RGB_camera == 1
         crop_rgb_res = str2num(properties.RGB_crop_cor); % case should crop RGB camera frame
         rgb_res(1) = crop_rgb_res(4) + 1;
         rgb_res(2) = crop_rgb_res(3) + 1;
         properties.cropped_RGB_res(1) = crop_rgb_res(4) + 1;
         properties.cropped_RGB_res(2) = crop_rgb_res(3) + 1;
-    else
+    elseif properties.RGB_camera == 1
         rgb_res(1) = properties.RGB_resolution(1);
         rgb_res(2) = properties.RGB_resolution(2);
     end
     
-    if properties.NIR_crop_cor ~= 0
+    if properties.NIR_crop_cor ~= 0 && properties.NIR_camera == 1
         crop_nir_res = str2num(properties.NIR_crop_cor); % case should crop RGB camera frame
         nir_res(1) = crop_nir_res(4) ;
         nir_res(2) = crop_nir_res(3) + 1;
         properties.cropped_NIR_res(1) = crop_nir_res(4) + 1;
         properties.cropped_NIR_res(2) = crop_nir_res(3) + 1;
-    else
+    elseif properties.NIR_camera == 1
         nir_res(1) = properties.NIR_resolution(1);
         nir_res(2) = properties.NIR_resolution(2);
     end
