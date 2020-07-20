@@ -45,6 +45,16 @@ if properties.RGB_camera == 1 && err == 0
         err = status(app, 'Connecting to RGB camera...', 'g', 1, 0);
         rgb_cam = webcam(properties.RGB_camera2connect);
         rgb_cam.Resolution = [num2str(properties.RGB_resolution(2)) ,'x', num2str(properties.RGB_resolution(1))];
+        frame_VIS = snapshot(rgb_cam); % get imgage from NIR camera if needed
+        
+        if properties.RGB_crop_cor ~= 0
+            vis_crop_cor = str2num(properties.RGB_crop_cor); % case should crop NIR image
+            frame_VIS = imcrop(frame_VIS, vis_crop_cor); % cropping the frame
+        end
+        if properties.RGB_camera2gray == 1
+            frame_VIS = rgb2gray(frame_VIS); % get imgage from VIS camera if needed and transform to gray
+        end
+        
         viewer_is_running = 1; % ok to run frame grabber loop
     catch
         err = status(app, 'Error connecting to RGB camera.', 'r', 1, 1);
@@ -61,6 +71,16 @@ if properties.NIR_camera == 1 && err == 0
         err = status(app, 'Connecting to NIR camera...', 'g', 1, 0);
         nir_cam = webcam(properties.NIR_camera2connect);
         nir_cam.Resolution = [num2str(properties.NIR_resolution(2)) ,'x', num2str(properties.NIR_resolution(1))];
+        frame_NIR = snapshot(nir_cam); % get imgage from NIR camera if needed
+        
+        if properties.NIR_crop_cor ~= 0
+            nir_crop_cor = str2num(properties.NIR_crop_cor); % case should crop NIR image
+            frame_NIR = imcrop(frame_NIR, nir_crop_cor); % cropping the frame
+        end
+        if properties.NIR_camera2gray == 1
+            frame_NIR = rgb2gray(frame_NIR); % get imgage from VIS camera if needed and transform to gray
+        end
+
         viewer_is_running = 1; % ok to run frame grabber loop
     catch
         err = status(app, 'Error connecting to NIR camera.', 'r', 1, 1);
@@ -144,44 +164,22 @@ if properties.save_data == 1 && err == 0
         
     end
     
-    if properties.RGB_crop_cor ~= 0 & properties.RGB_camera == 1
-        crop_rgb_res = str2num(properties.RGB_crop_cor); % case should crop RGB camera frame
-        rgb_res(1) = crop_rgb_res(4) + 1;
-        rgb_res(2) = crop_rgb_res(3) + 1;
-        properties.cropped_RGB_res(1) = crop_rgb_res(4) + 1;
-        properties.cropped_RGB_res(2) = crop_rgb_res(3) + 1;
-    elseif properties.RGB_camera == 1
-        rgb_res(1) = properties.RGB_resolution(1);
-        rgb_res(2) = properties.RGB_resolution(2);
-    end
-    
-    if properties.NIR_crop_cor ~= 0 & properties.NIR_camera == 1
-        crop_nir_res = str2num(properties.NIR_crop_cor); % case should crop RGB camera frame
-        nir_res(1) = crop_nir_res(4) + 1;
-        nir_res(2) = crop_nir_res(3) + 1;
-        properties.cropped_NIR_res(1) = crop_nir_res(4) + 1;
-        properties.cropped_NIR_res(2) = crop_nir_res(3) + 1;
-    elseif properties.NIR_camera == 1
-        nir_res(1) = properties.NIR_resolution(1);
-        nir_res(2) = properties.NIR_resolution(2);
-    end
-    
     % Allocates memory:
     
     properties.allocation = round(properties.allocation + 0.1*properties.allocation);
     
     if properties.RGB_camera == 1 && properties.RGB_camera2gray == 1
-        buffer_VIS = zeros(rgb_res(1), rgb_res(2), properties.allocation,'uint8'); % gray
+        buffer_VIS = zeros(size(frame_VIS, 1), size(frame_VIS, 2), properties.allocation,'uint8'); % gray
     elseif properties.RGB_camera == 1 && properties.RGB_camera2gray == 0
-        buffer_VIS = zeros(rgb_res(1), rgb_res(2), 3, properties.allocation,'uint8'); % color
+        buffer_VIS = zeros(size(frame_VIS, 1), size(frame_VIS, 2), 3, properties.allocation,'uint8'); % color
     else
         buffer_VIS = 0;
     end
     
     if properties.NIR_camera == 1 && properties.NIR_camera2gray == 1
-        buffer_NIR = zeros(nir_res(1), nir_res(2), properties.allocation,'uint8'); % gray
+        buffer_NIR = zeros(size(frame_NIR, 1), size(frame_NIR, 2), properties.allocation,'uint8'); % gray
     elseif properties.NIR_camera == 1 && properties.NIR_camera2gray == 0
-        buffer_NIR = zeros(nir_res(1), nir_res(2), 3, properties.allocation,'uint8'); % color
+        buffer_NIR = zeros(size(frame_NIR, 1), size(frame_NIR, 2), 3, properties.allocation,'uint8'); % color
     else
         buffer_NIR = 0;
     end
@@ -244,11 +242,11 @@ else
     properties.play_mode = 1;
 end
 
-if properties.RGB_crop_cor ~= 0 & err == 0
+if ~exist('rgb_crop_cor', 'var') & properties.RGB_crop_cor ~= 0 & err == 0
     rgb_crop_cor = str2num(properties.RGB_crop_cor); % case should crop VIS image
 end
 
-if properties.NIR_crop_cor ~= 0 & err == 0
+if ~exist('nir_crop_cor', 'var') & properties.NIR_crop_cor ~= 0 & err == 0
     nir_crop_cor = str2num(properties.NIR_crop_cor); % case should crop VIS image
 end
 
