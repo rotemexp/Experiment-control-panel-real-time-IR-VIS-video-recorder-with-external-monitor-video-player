@@ -294,26 +294,24 @@ while(viewer_is_running) % main loop
     
     if properties.RGB_camera == 1 % if needs to get frame from VIS camera
         
-        if properties.RGB_camera2gray == 1
-            frame_VIS = rgb2gray(snapshot(rgb_cam)); % get imgage from VIS camera if needed and transform to gray
-        else
-            frame_VIS = snapshot(rgb_cam); % get imgage from VIS camera if needed
-        end
+        frame_VIS = snapshot(rgb_cam); % get imgage from VIS camera if needed
         if properties.RGB_crop_cor ~= 0
             frame_VIS = imcrop(frame_VIS, rgb_crop_cor); % cropping the frame
         end
-        
+        if properties.RGB_camera2gray == 1
+            frame_VIS = rgb2gray(frame_VIS); % get imgage from VIS camera if needed and transform to gray
+        end
+
     end
     
     if properties.NIR_camera == 1 % if needs to get frame from VIS camera
         
-        if properties.NIR_camera2gray == 1
-            frame_NIR = rgb2gray(snapshot(nir_cam)); % get imgage from VIS camera if needed and transform to gray
-        else
-            frame_NIR = snapshot(nir_cam); % get imgage from VIS camera if needed
-        end
+        frame_NIR = snapshot(nir_cam); % get imgage from NIR camera if needed
         if properties.NIR_crop_cor ~= 0
             frame_NIR = imcrop(frame_NIR, nir_crop_cor); % cropping the frame
+        end
+        if properties.NIR_camera2gray == 1
+            frame_NIR = rgb2gray(frame_NIR); % get imgage from VIS camera if needed and transform to gray
         end
         
     end
