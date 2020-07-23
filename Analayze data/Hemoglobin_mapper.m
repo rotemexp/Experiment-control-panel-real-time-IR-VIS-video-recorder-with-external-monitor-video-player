@@ -1,22 +1,30 @@
-function data = roi_intensity(vid, properties, file_name, var_name, vid_num, N, start_time,...
+function data = Hemoglobin_mapper(vid, properties, file_name, var_name, vid_num, N, start_time,...
     end_time, enhance_image, crop_cors, newFrameRate, final_img_disp, roi_labels, videos_idx_emotions)
 %% Pre-flight check
 
 if ndims(vid) == 3
     dim4 = 0;
-    len = size(vid, 3); % get number of recorded frames
+    len = size(vid,3); % get number of recorded frames
 elseif ndims(vid) == 4
     dim4 = 1;
-    len = size(vid, 4); % get number of recorded frames
+    len = size(vid,4); % get number of recorded frames
 else
     disp('No video file to process was found inside the selected data file') % no data file to process
     return
 end
 
+if isa(vid, 'uint8')
+    type = 'VIS';
+elseif isa(vid, 'single')
+    type = 'IR';
+else
+    disp('Video file could not decide whether it is VIS or IR') % no data file to process
+    return
+end
+
 %% Prepare variables
 
-type = char(extractBefore(var_name, '_'));
-vid_play_order = str2double(extractBefore(extractAfter(var_name, '_'), '_'));
+vid_play_order = str2double(extractBefore(var_name, '_'));
 
 if isfield(properties, 'play_list') == 1
     
@@ -30,7 +38,7 @@ if isfield(properties, 'play_list') == 1
     
     if newFrameRate == 0 % case no need to change frame rate
         if properties.frame_rate == 0
-            properties.frame_rate = properties.play_list(vid_play_order, 8);
+            properties.frame_rate = properties.play_list(vid_play_order,8);
         else
             newFrameRate = properties.frame_rate;
         end
@@ -56,7 +64,7 @@ end
 if end_time == 0 % setting the end time
     
     if isfield(properties, 'play_list') == 1
-        end_time = properties.play_list(vid_play_order, 2);
+        end_time = properties.play_list(vid_play_order,2);
     else
         end_time = (single(properties.t(end,1)) / 1000);
     end
@@ -82,7 +90,7 @@ else
         frame = vid(:,:,frameStart); % gray
     end
     
-    if strcmp(type, 'VIS') || strcmp(type, 'NIR')
+    if strcmp(type, 'VIS')
         frame = im2double(frame); % reads current frame from video
     elseif strcmp(type, 'IR')
         % change values from temperature (C) to uint8
@@ -118,10 +126,6 @@ while k <= numOfFrames % running on each frame of the video file
     else
         frame = vid(:,:,k + frameStart - 1); % gray
     end
-    
-    if strcmp(type, 'VIS') || strcmp(type, 'NIR')
-        frame = im2double(frame); % reads current frame from video
-    end
 
     if enhance_image == 1
         frame = img_enhancement(frame); % calls image enhancement function
@@ -132,31 +136,24 @@ while k <= numOfFrames % running on each frame of the video file
         cropped_frame{i} = imcrop(frame, crop_cors(i,:)); % cropping the frame
 
         if dim4 == 1
-            data.R(k,i) = intensity_calc(N, cropped_frame{i}(:,:,1), 0); % calculate averaged R channel intensity at ROI's
-            data.G(k,i) = intensity_calc(N, cropped_frame{i}(:,:,2), 0); % calculate averaged G channel at ROI's
-            data.B(k,i) = intensity_calc(N, cropped_frame{i}(:,:,3), 0); % calculate averaged B channel at ROI's
-        
-            cropped_frame{i} = rgb2gray(cropped_frame{i});
             
+            
+            for n=1:3
+                maxi = max(max(cropped_frame{i}(:,:,n)));
+                mini = min(min(cropped_frame{i}(:,:,n)));
+                for m=mini:maxi
+                    tmp_frame = cropped_frame{i}(:,:,n);
+                    [r, c] = find(tmp_frame == m);
+                end
+            end
+            
+
         end
-        
-        data.sig(k,i) = intensity_calc(N, cropped_frame{i}, 0); % calculate averaged intensity at ROI's
 
     end
     k = k + 1;
 end % end while
 
-%% UV transformation for color video
-
-if dim4 == 1
-    
-    V = 1.5.*data.R + 2.*data.G - 1.5.*data.B;
-    U = 3.*data.R - 2.*data.G;
-    
-    lambda = std(U) ./ std(V);
-    data.sig_uv = U - lambda.*V; % final data matrix: equation 3 in the paper
-
-end
 
 %% Parameters transfer
 
@@ -165,8 +162,8 @@ data.process_time_unix = posixtime(datetime);
 data.roi_labels = roi_labels;
 data.type = type;
 data.crop_cors = crop_cors;
-data.play_order = uint8(vid_play_order);
-data.var_name = char(extractAfter(var_name, '_'));
+data.play_order = uint8(str2double(extractBefore(var_name, '_')));
+data.var_name = var_name;
 data.vid_num = vid_num;
 data.file_name = file_name;
 data.VIS_crop_cor1 = uint16(crop_cors); % save cropping coordinates

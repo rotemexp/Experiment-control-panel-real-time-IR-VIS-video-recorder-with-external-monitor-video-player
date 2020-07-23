@@ -1,6 +1,8 @@
-function play(file2load, channel, video_number, fast_play, segment_time, diff, order_vid_idx)
+function play(file2load, channel, video_number, fast_play, segment_time, diff)
 
-[raw_vis, raw_ir, var_name, properties] = get_raw_vid(file2load, video_number, channel, order_vid_idx); % get video from data file
+load(file2load, 'properties')
+
+[raw_vis, raw_nir, raw_ir, var_name, vars_idx] = get_raw_vid(file2load, video_number, channel, properties); % get video from data file
 
 if ndims(raw_vis) > 2 & ndims(raw_ir) > 2  % checks if VIS camera data file have been loaded
     vis_dimenstions = ndims(raw_vis);

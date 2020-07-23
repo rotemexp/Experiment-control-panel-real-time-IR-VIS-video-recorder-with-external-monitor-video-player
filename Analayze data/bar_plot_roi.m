@@ -1,5 +1,5 @@
 function bar_plot_roi(sig_avg, sig_max, sig_min, sig_std, channel, dir_file_list,...
-    files2process, mode, roi_labels, play_order_stat)
+    files2process, mode, roi_labels, group_by)
 
 sub = size(sig_avg, 3);
 vids_num = size(sig_avg, 2);
@@ -10,7 +10,7 @@ sub_count = 1;
 i_counter = 1;
 
 str = ['File: ', num2str(dir_file_list(files2process(1)).name), ', Videos IDX: ', num2str(vids2process(1)), '-', num2str(vids_num+vids2process(1)-1),...
-    ', Channel: ', channel, ', Videos order by: ', play_order_stat];
+    ', Channel: ', channel, ', Videos order by: ', group_by];
 
 figure('Name', str); % opens a new figure window
 sgtitle(str); % plots the idx-title
@@ -52,7 +52,7 @@ for i=1:exp_num
         end
         
         title(['ROI ', num2str(k), ': ', char(roi_labels(k)) , ' - ', upper(mode)]); % print signal's title
-        xlabel(play_order_stat);
+        xlabel(group_by);
         axis on;
         
         if strcmp(channel,'IR') == 1
@@ -68,7 +68,7 @@ for i=1:exp_num
             batch = batch + 1;
             sub_count = 1;
             str = ['File: ', num2str(dir_file_list(files2process(i)).name), ', Videos IDX: ', num2str(vids2process(1)), '-', num2str(vids_num+vids2process(1)-1),...
-                ', Channel: ', channel, ', Videos order by: ', play_order_stat];
+                ', Channel: ', channel, ', Videos order by: ', group_by];
             figure('Name', str); % opens a new figure window
             sgtitle(str); % plots the idx-title
             

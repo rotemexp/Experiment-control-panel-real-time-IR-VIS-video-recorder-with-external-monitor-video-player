@@ -6,52 +6,52 @@ tic
 
 %% Calculate ROI's pixel's intensity average
 
-file_name = 'Pilot Sub6';
+file_name = 'Shauls experiment';
 save_it = 1; % 1: yes, 0: no
 roi_labels = ["Forehead", "Nose", "Left cheek", "Right cheek", "Lip", "Background"];
 %roi_labels = "All frame";
 remarks = '6 ROIs'; %remarks = 'IR: eyes, VIS: eyes';
-channel = 'VISIR'; % VISIR / IR / VIS
+channel = [1, 1, 1]; % [VIS, NIR, IR] 0: yes, 1: no
 
-[ir, vis] = get_data(file_name, save_it, channel, roi_labels, remarks);
+[vis, nir, ir] = get_data(file_name, save_it, channel, roi_labels, remarks);
 
 %% ROI's intensity comparison
 
-folder = 'Analayzed data';
+folder = 'Analayzed data\';
 dir_file_list = dir(folder);
 dir_file_list = dir_file_list(~ismember({dir_file_list.name},{'.','..'}));
 
-files2process = 10:13; % choose indexes of data files to calc
+files2process = [15, 8];%[1, 18]; % choose indexes of data files to calc
+
 disp_last_frames = 0; % 1 / 0
 mode = 'avg'; % diff / avg / std
-comparison = 'file'; % file / roi
-channel = 'ir'; % VIS / IR / R / G / B
-group_by = 'Played order'; % Played order / Video index / Emotions
+comparison = 'summary'; % file / roi / summary
+channel = 'ir'; % VIS / NIR / IR / VISR / VISG / VISB / NIRR / NIRG / NIRB
+group_by = 'Emotions'; % Played_order / Video_index / Emotions
 background_subtraction = 6; % 0: off, x: subtract ROI x from the others.
 
 filter_type = 'no'; % 'low' / 'high' / 'bandpass' / 'median' / 'dc' / 'no'
 cutoff_freq = [0.8, 1.5]; % positive number in case filter is low / high. for bandpass use: [f_low, f_high]
 
-var_names_list = intensity_comparison(channel, folder, files2process,...
+[var_names_list, emotions_list] = intensity_comparison(channel, folder, files2process,...
     disp_last_frames, mode, comparison, background_subtraction, group_by,...
     filter_type, cutoff_freq);
 
 %% Plot signal
+file_name = 'Shauls experiment';
+subFolder = 'Analayzed data\';
+file2load = fullfile(subFolder,file_name);
 
-load('Analayzed data/pilot2 sub1');
+load(file2load);
 subplot = 16;
 frame_plot = 0;
 background_subtraction = 0; % 0: off, x: subtract ROI x from the others.
-group_by = 'Played order'; % Played order / Video index / Emotions
+group_by = 'Emotions'; % Played_order / Video_index / Emotions
 
 filter_type = 'dc'; % 'low' / 'high' / 'bandpass' / 'median' / 'dc' / 'no'
 cutoff_freq = [0.2, 0.4]; % positive number in case filter is low / high. for bandpass use: [f_low, f_high]
 
-%signal_plot(ir, 'sig', subplot, frame_plot, filter_type, cutoff_freq, background_subtraction)
-
-cutoff_freq = [0.8, 1.5]; % positive number in case filter is low / high. for bandpass use: [f_low, f_high]
-
-signal_plot(vis, 'sig_uv', subplot, frame_plot, filter_type, cutoff_freq, background_subtraction, group_by)
+signal_plot(nir, 'sig', subplot, frame_plot, filter_type, cutoff_freq, background_subtraction, group_by)
 
 %% Signals comparison
 
@@ -59,33 +59,29 @@ folder = 'Analayzed data';
 dir_file_list = dir(folder);
 dir_file_list = dir_file_list(~ismember({dir_file_list.name},{'.','..'}));
 
-files2process = 10:13; % choose indexes of data files to calc
+files2process = 6:8; % choose indexes of data files to calc
 
 roi_idx = 1;
-group_by = 'Emotions'; % Played order / Video index / Emotions
+group_by = 'Emotions'; % Played_order / Video_index / Emotions
 subplot = 16;
 
 filter_type = 'dc'; % 'low' / 'high' / 'bandpass' / 'median' / 'dc' / 'no'
 cutoff_freq = 1;%[0.2, 0.4]; % positive number in case filter is low / high. for bandpass use: [f_low, f_high]
 
-signals_comparison('IR', subplot, filter_type, cutoff_freq, folder, files2process, roi_idx, group_by)
-
-% cutoff_freq = 1;%[0.8, 1.5]; % positive number in case filter is low / high. for bandpass use: [f_low, f_high]
-% signals_comparison('VIS', subplot, filter_type, cutoff_freq, folder, files2process, roi_idx, group_by)
+signals_comparison('ir', subplot, filter_type, cutoff_freq, folder, files2process, roi_idx, group_by)
 
 %% FFT
 
-load('Analayzed data/pilot2 sub2');
+load('Analayzed data/Shauls experiment');
 subplot = 16;
 roi_idx = 1;
 freq_limit = 0; %[0.1, 2]; % 2 element vector as frequency (x-axis) limits or 1 element for none.
 pow_limit = 0; %[0, 1]; % 2 element vector as power (y-axis) limits or 1 element for none.
 filter_type = 'dc'; % 'low' / 'high' / 'bandpass' / 'median' / 'dc' / 'no'
 cutoff_freq = 0.02; % positive number in case filter is low / high. for bandpass use: [f_low, f_high]
-group_by = 'Played order'; % Played order / Video index / Emotions
+group_by = 'Emotions'; % Played_order / Video_index / Emotions
 
-%FFT_plot(ir, 'sig', freq_limit, pow_limit, subplot, filter_type, cutoff_freq, roi_idx, group_by)
-FFT_plot(vis, 'sig_uv', freq_limit, pow_limit, subplot, filter_type, cutoff_freq, roi_idx, group_by)
+FFT_plot(nir, 'sig', freq_limit, pow_limit, subplot, filter_type, cutoff_freq, roi_idx, group_by)
 
 %% STFT
 
@@ -98,8 +94,7 @@ ov = 0.5; % precentage overlap between sections
 filter_type = 'dc'; % 'low' / 'high' / 'bandpass' / 'median' / 'dc' / 'no'
 cutoff_freq = [0.5, 3]; % positive number in case filter is low / high. for bandpass use: [f_low, f_high]
 
-%STFTplot(ir, 'IR', freq_limit, subplot, plotMax, ns, ov, filter_type, cutoff_freq);
-STFTplot(vis, 'VIS', freq_limit, subplot, plotMax, ns, ov, filter_type, cutoff_freq);
+STFTplot(nir, 'sig', freq_limit, subplot, plotMax, ns, ov, filter_type, cutoff_freq);
 
 %% CWT
 
@@ -122,15 +117,14 @@ CWT_plot(vis, 'VIS', plotMax, filter_bank, subplot, filter_type, cutoff_freq);
 %% Play video
 
 % video file name to open:
-subFolder = 'Recordings\';
-file_name = 'Pilot2 Sub5';
+subFolder = 'E:\Thesis data\';
+file_name = 'Shauls experiment.mat';
 file2load = fullfile(subFolder,file_name);
 
 fast_play = 1; % 0: regular / manual, 1: fast
 segment_time = 0; % time between frames [sec]
 show_differences = 0; % 0-1: no (regular), >2: show frame differences between this value.
-video_number = 58; % video number to play
-order_vid_idx = 1; % 1: search video by play order, 2: search video by video index
+video_number = 51; % video number to play
 
 play(file2load, 'IR', video_number, fast_play, segment_time, show_differences, order_vid_idx);
 

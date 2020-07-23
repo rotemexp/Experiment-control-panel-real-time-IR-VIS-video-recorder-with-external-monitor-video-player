@@ -1,4 +1,4 @@
-function var_names_list = intensity_comparison(channel, folder, files2process,...
+function [var_names_list, emotions_list] = intensity_comparison(channel, folder, files2process,...
     disp_last_frames, mode, comparison, background_subtraction, group_by,...
     filter_type, cutoff_freq)
 
@@ -25,23 +25,30 @@ for k = files2process
             dir_file_list(k).name = extractBefore(dir_file_list(k).name, "."); % remove '.mat' from file name
             file2load = fullfile([folder, current_file]);
             
-            if strcmp(channel, 'VISIR')
-                disp('Cannot display both VIS & IR data.')
-                disp('Choose one of the following: VIS / IR / R / G / B');
-                return
-                %load(file2load, 'vis', 'ir', 'remarks', 'properties');
-            elseif strcmp(channel, 'VIS') || strcmp(channel, 'R') ||...
-                    strcmp(channel, 'G') || strcmp(channel, 'B')
+            if strcmp(channel, 'VIS') || strcmp(channel, 'VISR') ||...
+                    strcmp(channel, 'VISG') || strcmp(channel, 'VISB')
                 load(file2load, 'vis', 'remarks', 'properties');
                 eval('data = vis;');
+            elseif strcmp(channel, 'NIR') || strcmp(channel, 'NIRR') ||...
+                    strcmp(channel, 'NIRG') || strcmp(channel, 'NIRB')
+                load(file2load, 'nir', 'remarks', 'properties');
+                eval('data = nir;');
             elseif strcmp(channel, 'IR')
                 load(file2load, 'ir', 'remarks', 'properties');
                 eval('data = ir;');
+            else
+                disp('Error loading data from file, choose one of the following: VIS / NIR / IR / R / G / B');
+                return
             end
             
-            if strcmp(group_by, 'Played order') || strcmp(group_by, 'Video index')...
-                    || strcmp(group_by, 'Emotions')
-                data = flipper(data, group_by); % flip data order and remove empty spaces
+            if strcmp(group_by, 'Played_order') || strcmp(group_by, 'Video_index')...
+                    || strcmp(group_by, 'Emotions') || strcmp(comparison, 'summary')
+                if strcmp(comparison, 'summary')
+                    group_by = 'Emotions';
+                    data = flipper(data, group_by); % arrange by emotions and remove empty spaces
+                else
+                    data = flipper(data, group_by); % flip data order and remove empty spaces
+                end
             end
             
             last_frames_list{k_counter} = data{i}.last_frame; % get last frame image
@@ -50,9 +57,11 @@ for k = files2process
         
         if i <= length(data) && ~isempty(data{i})
             
-            if strcmp(data{i}.type, 'VIS') && strcmp(channel, 'VIS')
+            if (strcmp(data{i}.type, 'VIS') || strcmp(data{i}.type, 'NIR')) && ...
+                    (strcmp(channel, 'VIS') || strcmp(channel, 'NIR'))
                 
-                var_names_list(k_counter, i_counter) = string(data{i}.var_name);
+                var_names_list(i_counter, k_counter) = string(data{i}.var_name);
+                emotions_list(i_counter, k_counter) = string(data{i}.expected_emotion);
                 eval('sig = data{i}.sig;'); % get the desired signal
                 
                 if background_subtraction ~= 0
@@ -73,14 +82,12 @@ for k = files2process
                 sig_max(k_counter, i_counter, :) = max(sig);
                 sig_min(k_counter, i_counter, :) = min(sig);
                 sig_std(k_counter, i_counter, :) = std(sig);
-
-            elseif strcmp(data{i}.type, 'VIS') && strcmp(channel, 'R')
                 
-                if k==2
-                   disp(' ');
-                end
+            elseif (strcmp(data{i}.type, 'VIS') || strcmp(data{i}.type, 'NIR')) && ...
+                    (strcmp(channel, 'VISR') || strcmp(channel, 'NIRR'))
                 
-                var_names_list(k_counter, i_counter) = string(data{i}.var_name);
+                var_names_list(i_counter, k_counter) = string(data{i}.var_name);
+                emotions_list(i_counter, k_counter) = string(data{i}.expected_emotion);
                 eval('R = data{i}.R;'); % get the desired signal
                 
                 if background_subtraction ~= 0
@@ -97,14 +104,16 @@ for k = files2process
                     R = filterit(R, fps, filter_type, cutoff_freq, 1);
                 end
                 
-                R_avg(k_counter, i_counter, :) = mean(R);
-                R_max(k_counter, i_counter, :) = max(R);
-                R_min(k_counter, i_counter, :) = min(R);
-                R_std(k_counter, i_counter, :) = std(R);
+                sig_avg(k_counter, i_counter, :) = mean(R);
+                sig_max(k_counter, i_counter, :) = max(R);
+                sig_min(k_counter, i_counter, :) = min(R);
+                sig_std(k_counter, i_counter, :) = std(R);
                 
-            elseif strcmp(data{i}.type, 'VIS') && strcmp(channel, 'G')
+            elseif (strcmp(data{i}.type, 'VIS') || strcmp(data{i}.type, 'NIR')) && ...
+                    (strcmp(channel, 'VISG') || strcmp(channel, 'NIRG'))
                 
-                var_names_list(k_counter, i_counter) = string(data{i}.var_name);
+                var_names_list(i_counter, k_counter) = string(data{i}.var_name);
+                emotions_list(i_counter, k_counter) = string(data{i}.expected_emotion);
                 eval('G = data{i}.G;'); % get the desired signal
                 
                 if background_subtraction ~= 0
@@ -121,14 +130,16 @@ for k = files2process
                     G = filterit(G, fps, filter_type, cutoff_freq, 1);
                 end
                 
-                G_avg(k_counter, i_counter, :) = mean(G);
-                G_max(k_counter, i_counter, :) = max(G);
-                G_min(k_counter, i_counter, :) = min(G);
-                G_std(k_counter, i_counter, :) = std(G);
+                sig_avg(k_counter, i_counter, :) = mean(G);
+                sig_max(k_counter, i_counter, :) = max(G);
+                sig_min(k_counter, i_counter, :) = min(G);
+                sig_std(k_counter, i_counter, :) = std(G);
                 
-            elseif strcmp(data{i}.type, 'VIS') && strcmp(channel, 'B')
+            elseif (strcmp(data{i}.type, 'VIS') || strcmp(data{i}.type, 'NIR')) && ...
+                    (strcmp(channel, 'VISB') || strcmp(channel, 'NIRB'))
                 
-                var_names_list(k_counter, i_counter) = string(data{i}.var_name);
+                var_names_list(i_counter, k_counter) = string(data{i}.var_name);
+                emotions_list(i_counter, k_counter) = string(data{i}.expected_emotion);
                 eval('B = data{i}.B;'); % get the desired signal
                 
                 if background_subtraction ~= 0
@@ -145,14 +156,15 @@ for k = files2process
                     B = filterit(B, fps, filter_type, cutoff_freq, 1);
                 end
                 
-                B_avg(k_counter, i_counter, :) = mean(B);
-                B_max(k_counter, i_counter, :) = max(B);
-                B_min(k_counter, i_counter, :) = min(B);
-                B_std(k_counter, i_counter, :) = std(B);
+                sig_avg(k_counter, i_counter, :) = mean(B);
+                sig_max(k_counter, i_counter, :) = max(B);
+                sig_min(k_counter, i_counter, :) = min(B);
+                sig_std(k_counter, i_counter, :) = std(B);
                 
             elseif strcmp(data{i}.type, 'IR')
                 
-                var_names_list(k_counter, i_counter) = string(data{i}.var_name);
+                var_names_list(i_counter, k_counter) = string(data{i}.var_name);
+                emotions_list(i_counter, k_counter) = string(data{i}.expected_emotion);
                 eval('sig = data{i}.sig;'); % get the desired signal
                 
                 if background_subtraction ~= 0
@@ -182,55 +194,52 @@ for k = files2process
     k_counter = k_counter + 1;
 end
 
-%% call bar plot function
+%% Prepares some variabls
 
 roi_labels = data{1, 1}.roi_labels;
 
+first  = extractBefore(group_by, '_');
+if ~isempty(first)
+    second  = extractAfter(group_by, '_');
+    group_by = [first, ' ', second];
+end
+
 if strcmp(channel, 'VIS')
-    
-    if strcmp(comparison, 'roi')
-        bar_plot_roi(sig_avg, sig_max, sig_min, sig_std, 'VIS', dir_file_list, files2process, mode, roi_labels, group_by)
-    elseif strcmp(comparison, 'file')
-        bar_plot_file(sig_avg, sig_max, sig_min, sig_std, 'VIS', dir_file_list, files2process, mode, roi_labels, group_by)
-    end
-    
-elseif strcmp(channel, 'R')
-    
-    if strcmp(comparison, 'roi')
-        bar_plot_roi(R_avg, R_max, R_min, R_std, 'Red', dir_file_list, files2process, mode, roi_labels, group_by)
-    elseif strcmp(comparison, 'file')
-        bar_plot_file(R_avg, R_max, R_min, R_std, 'Red', dir_file_list, files2process, mode, roi_labels, group_by)
-    end
-    
-elseif strcmp(channel, 'G')
-    
-    if strcmp(comparison, 'roi')
-        bar_plot_roi(G_avg, G_max, G_min, G_std, 'Green', dir_file_list, files2process, mode, roi_labels, group_by)
-    elseif strcmp(comparison, 'file')
-        bar_plot_file(G_avg, G_max, G_min, G_std, 'Green', dir_file_list, files2process, mode, roi_labels, group_by)
-    end
-    
-elseif strcmp(channel, 'B')
-    
-    if strcmp(comparison, 'roi')
-        bar_plot_roi(B_avg, B_max, B_min, B_std, 'Blue', dir_file_list, files2process, mode, roi_labels, group_by)
-    elseif strcmp(comparison, 'file')
-        bar_plot_file(B_avg, B_max, B_min, B_std, 'Blue', dir_file_list, files2process, mode, roi_labels, group_by)
-    end
-    
+    ch_name = 'VIS';
+elseif strcmp(channel, 'VISR')
+    ch_name = 'VIS-Red';
+elseif strcmp(channel, 'VISG')
+    ch_name = 'VIS-Green';
+elseif strcmp(channel, 'VISB')
+    ch_name = 'VIS-Blue';
+elseif strcmp(channel, 'NIR')
+    ch_name = 'NIR';
+elseif strcmp(channel, 'NIRR')
+    ch_name = 'NIR-Red';
+elseif strcmp(channel, 'NIRG')
+    ch_name = 'NIR-Green';
+elseif strcmp(channel, 'NIRB')
+    ch_name = 'NIR-Blue';
 elseif strcmp(channel, 'IR')
-    
+    ch_name = 'IR';
+end
+
+%% call bar plot function
+if strcmp(group_by, 'Played_order') || strcmp(group_by, 'Video_index') || strcmp(group_by, 'Emotions')
+
     if strcmp(comparison, 'roi')
-        bar_plot_roi(sig_avg, sig_max, sig_min, sig_std, channel, dir_file_list, files2process, mode, roi_labels, group_by)
+        bar_plot_roi(sig_avg, sig_max, sig_min, sig_std, ch_name, dir_file_list, files2process, mode, roi_labels, group_by)
     elseif strcmp(comparison, 'file')
-        bar_plot_file(sig_avg, sig_max, sig_min, sig_std, channel, dir_file_list, files2process, mode, roi_labels, group_by)
+        bar_plot_file(sig_avg, sig_max, sig_min, sig_std, ch_name, dir_file_list, files2process, mode, roi_labels, group_by)
+    elseif strcmp(comparison, 'summary')
+        bar_plot_summary(sig_avg, sig_max, sig_min, sig_std, ch_name, dir_file_list, files2process, mode, roi_labels, emotions_list)
     end
-    
+
 end
 
 %% Display last frames
 
-if disp_last_frames == 1
+if disp_last_frames
     
     for k = 1:size(last_frames_list,2)
         

@@ -1,6 +1,6 @@
 function signal_plot(data, channel, sub, frame_plot, filter_type, cutoff_freq, background_subtraction, group_by)
 
-if strcmp(group_by, 'Played order') || strcmp(group_by, 'Video index')...
+if strcmp(group_by, 'Played_order') || strcmp(group_by, 'Video_index')...
         || strcmp(group_by, 'Emotions')
     data = flipper(data, group_by); % flip data order and remove empty spaces
 end
