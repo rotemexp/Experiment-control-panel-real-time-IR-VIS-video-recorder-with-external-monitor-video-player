@@ -8,7 +8,7 @@ err = status(app, 'Warming up...', 'g', 1, 0);
 t = uint64(zeros(1));
 tLast_display = 1;
 t_seg = zeros(2,1);
-t_flag = 1;
+t_flag = zeros(2,1);
 tStart = tic;
 idx = 1;
 run = 1;
@@ -24,10 +24,9 @@ while run == 1 && viewer_is_running == 1
             run = 0;
         end
     end
-    
     t_seg(2) = (round(toc(tStart)*1000)); % saves time delta
-    t(idx) = (round(toc(tStart)*1000)); % saves time delta
     
+    t(idx) = (round(toc(tStart)*1000)); % saves time delta
     if t(idx) - t(tLast_display) >= 1000 % checks if elpased time is larger then 1 sec
         app.Status2.Text = sprintf('%s', num2str(t(idx) / 1000)); % updates elapsed time
         app.Status1.FontColor = [0.29,0.58,0.07]; % dark green
@@ -41,18 +40,26 @@ while run == 1 && viewer_is_running == 1
     end
 
     if properties.LWIR_camera == 1
+        
+%         if t_seg(2) - t_seg(1) >= (1000*60) % checks if elpased time is larger
+%             IRViewer.trigger_shutter_flag(); % triggers flag (temperature drift reset);
+%         end
+        
         if properties.LWIR_tempORcolor == 1
             frame_IR = (single(IRInterface.get_thermal() - 10000) ./ 100); % get gray image from IR camera
         else
             frame_IR = (IRInterface.get_palette()); % get color image from IR camera
         end
-        
-        if t(idx) - t(t_flag) >= 1000*30 % checks if elpased time is larger then 30 sec
-            IRViewer.trigger_shutter_flag(); % triggers flag (temperature drift reset)
-            t_flag = idx;
-        end
     end
-
+    
+%     if properties.RGB_camera == 1
+%         frame_VIS = snapshot(rgb_cam); % get imgage from VIS camera
+%     end
+%     
+%     if properties.NIR_camera == 1
+%         frame_NIR = snapshot(nir_cam); % get imgage from VIS camera
+%     end
+    
     idx = idx + 1; % increas index
 end
 

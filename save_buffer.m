@@ -1,4 +1,4 @@
-function err = save_buffer(app, properties, filename, playlist, buffer_VIS, buffer_IR, vid_num, buff_idx)
+function err = save_buffer(app, properties, filename, playlist, buffer_VIS, buffer_NIR, buffer_IR, vid_num, buff_idx)
 
 if buff_idx == 0
     err = 0;
@@ -7,7 +7,7 @@ end
 
 %try
 
-if properties.flag_IR_camera_on_black == 1 && properties.IR_camera == 1
+if properties.flag_IR_camera_on_black == 1 && properties.LWIR_camera == 1
     %err = status(app, 'Saving data to file & performing IR camera flag (Temp. drift reset)...', 'g', 1, 0);
     app.Status1.FontColor = [0.29,0.58,0.07]; % dark green
     app.Status1.Value = sprintf('%s', ['Saving ', num2str(buff_idx), ' frames to file & performing IR camera flag (Temp. drift reset)...']);
@@ -27,6 +27,7 @@ if properties.playVideofiles == 1 && properties.saveONblack == 1 && properties.s
     if isvarname(['VIS_', org_vid_name]) == 1
         
         VIS_name = ['VIS_', org_vid_name];
+        NIR_name = ['NIR_', org_vid_name];
         IR_name = ['IR_', org_vid_name];
         
     elseif isempty(vid_name) == 1
@@ -35,6 +36,7 @@ if properties.playVideofiles == 1 && properties.saveONblack == 1 && properties.s
         vid_name = strcat(vid_name,['_', num2str(vid_num)]);
         
         VIS_name = ['VIS_', vid_name];
+        NIR_name = ['NIR_', vid_name];
         IR_name = ['IR_', vid_name];
         
     end
@@ -42,14 +44,16 @@ if properties.playVideofiles == 1 && properties.saveONblack == 1 && properties.s
 elseif properties.playVideofiles == 1 && properties.saveONblack == 0
     vid_name = 0;
     VIS_name = ['VIS_', num2str(vid_name)];
+    NIR_name = ['NIR_', num2str(vid_name)];
     IR_name = ['IR_', num2str(vid_name)];
 else
     vid_name = vid_num; % case there only one data file
     VIS_name = ['VIS_', num2str(vid_name)];
+    NIR_name = ['NIR_', num2str(vid_name)];
     IR_name = ['IR_', num2str(vid_name)];
 end
 
-if properties.VIS_camera == 1
+if properties.RGB_camera == 1
     
     if ndims(buffer_VIS) == 3
         buffer_VIS = buffer_VIS(:,:,1:buff_idx);
@@ -62,7 +66,20 @@ if properties.VIS_camera == 1
     
 end
 
-if properties.IR_camera == 1
+if properties.NIR_camera == 1
+    
+    if ndims(buffer_NIR) == 3
+        buffer_NIR = buffer_NIR(:,:,1:buff_idx);
+    elseif ndims(buffer_VIS) == 4
+        buffer_NIR = buffer_NIR(:,:,:,1:buff_idx);
+    end
+    
+    eval([NIR_name, ' = buffer_NIR;']); % get the desired signal
+    save(filename, NIR_name,'-append'); % adds variables to the saved data file
+    
+end
+
+if properties.LWIR_camera == 1
     
     if ndims(buffer_IR) == 3
         buffer_IR = buffer_IR(:,:,1:buff_idx);

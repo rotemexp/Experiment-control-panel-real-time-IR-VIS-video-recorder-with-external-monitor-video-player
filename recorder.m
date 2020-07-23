@@ -13,41 +13,81 @@ feedback.age = 0;
 feedback.sex = 'nan';
 feedback.orientation = 'nan';
 
-%% Initializing IR camera
+%% Initializing LWIR camera
 
 err = 0; % declare no errors so far
 
-if properties.IR_camera == 1
-    %try
-    err = status(app, 'Connecting to IR camera...', 'g', 1, 0);
-    
-    IRInterface = EvoIRMatlabInterface;
-    IRViewer = EvoIRViewer; % initialize the viewer
-    close(1); % closes the Evocortex special window, so a new "regular" figure window will be opnened.
-    viewer_is_running = 1; % ok to run frame grabber loop
-    
-    if ~IRInterface.connect()
-        close all;
-        err = status(app, 'Error connecting to IR camera.', 'r', 1, 1);
+if properties.LWIR_camera == 1
+    if strcmp(properties.LWIR_camera2connect, 'PI IMAGER') % case LWIR camera is OPTRIS PI450
+        %try
+        err = status(app, 'Connecting to IR camera...', 'g', 1, 0);
+
+        IRInterface = EvoIRMatlabInterface;
+        IRViewer = EvoIRViewer; % initialize the viewer
+        close(1); % closes the Evocortex special window, so a new "regular" figure window will be opnened.
+        viewer_is_running = 1; % ok to run frame grabber loop
+
+        if ~IRInterface.connect()
+            close all;
+            err = status(app, 'Error connecting to IR camera.', 'r', 1, 1);
+        end
+
+        %catch
+        %err = status(app, 'Error connecting to IR camera.', 'r', 1, 1);
+        %end
     end
-    
-    %catch
-    %err = status(app, 'Error connecting to IR camera.', 'r', 1, 1);
-    %end
 end
-%% Initializing VIS camera
-if properties.VIS_camera == 1 && err == 0
+
+%% Initializing RGB camera
+
+if properties.RGB_camera == 1 && err == 0
     try
-        err = status(app, 'Connecting to VIS camera...', 'g', 1, 0);
-        cam = webcam(properties.camera2connect);
-        cam.Resolution = [num2str(properties.VIS_resolution(2)) ,'x', num2str(properties.VIS_resolution(1))];
+        err = status(app, 'Connecting to RGB camera...', 'g', 1, 0);
+        rgb_cam = webcam(properties.RGB_camera2connect);
+        rgb_cam.Resolution = [num2str(properties.RGB_resolution(2)) ,'x', num2str(properties.RGB_resolution(1))];
+        frame_VIS = snapshot(rgb_cam); % get imgage from NIR camera if needed
+        
+        if properties.RGB_crop_cor ~= 0
+            vis_crop_cor = str2num(properties.RGB_crop_cor); % case should crop NIR image
+            frame_VIS = imcrop(frame_VIS, vis_crop_cor); % cropping the frame
+        end
+        if properties.RGB_camera2gray == 1
+            frame_VIS = rgb2gray(frame_VIS); % get imgage from VIS camera if needed and transform to gray
+        end
+        
         viewer_is_running = 1; % ok to run frame grabber loop
     catch
-        err = status(app, 'Error connecting to VIS camera.', 'r', 1, 1);
+        err = status(app, 'Error connecting to RGB camera.', 'r', 1, 1);
     end
     
 else
-    cam = 0;
+    rgb_cam = 0;
+end
+
+%% Initializing NIR camera
+
+if properties.NIR_camera == 1 && err == 0
+    try
+        err = status(app, 'Connecting to NIR camera...', 'g', 1, 0);
+        nir_cam = webcam(properties.NIR_camera2connect);
+        nir_cam.Resolution = [num2str(properties.NIR_resolution(2)) ,'x', num2str(properties.NIR_resolution(1))];
+        frame_NIR = snapshot(nir_cam); % get imgage from NIR camera if needed
+        
+        if properties.NIR_crop_cor ~= 0
+            nir_crop_cor = str2num(properties.NIR_crop_cor); % case should crop NIR image
+            frame_NIR = imcrop(frame_NIR, nir_crop_cor); % cropping the frame
+        end
+        if properties.NIR_camera2gray == 1
+            frame_NIR = rgb2gray(frame_NIR); % get imgage from VIS camera if needed and transform to gray
+        end
+
+        viewer_is_running = 1; % ok to run frame grabber loop
+    catch
+        err = status(app, 'Error connecting to NIR camera.', 'r', 1, 1);
+    end
+    
+else
+    nir_cam = 0;
 end
 
 %% Initializing VLC player and playlist files
@@ -101,7 +141,7 @@ end
 %% Saving data file
 if properties.save_data == 1 && err == 0
     
-    err = status(app, 'Creating data file to save videos to...', 'g', 1, 0);
+    err = status(app, 'Creating data file...', 'g', 1, 0);
     
     [~, dir_feedback, ~] = mkdir ('Recordings'); % creates dir if it doesn't exist yet
     
@@ -124,37 +164,34 @@ if properties.save_data == 1 && err == 0
         
     end
     
-    if properties.crop_cor ~= 0
-        crop_vis_res = str2num(properties.crop_cor); % case should crop VIS image
-        vis_res(1) = crop_vis_res(4) + 1;
-        vis_res(2) = crop_vis_res(3) + 1;
-        properties.cropped_vis_res(1) = crop_vis_res(4) + 1;
-        properties.cropped_vis_res(2) = crop_vis_res(3) + 1;
-    else
-        vis_res(1) = properties.VIS_resolution(1);
-        vis_res(2) = properties.VIS_resolution(2);
-    end
-    
     % Allocates memory:
     
     properties.allocation = round(properties.allocation + 0.1*properties.allocation);
     
-    if properties.VIS_camera == 1 && properties.gray == 1
-        buffer_VIS = zeros(vis_res(1), vis_res(2), properties.allocation,'uint8'); % gray
-    elseif properties.VIS_camera == 1 && properties.gray == 0
-        buffer_VIS = zeros(vis_res(1), vis_res(2), 3, properties.allocation,'uint8'); % color
+    if properties.RGB_camera == 1 && properties.RGB_camera2gray == 1
+        buffer_VIS = zeros(size(frame_VIS, 1), size(frame_VIS, 2), properties.allocation,'uint8'); % gray
+    elseif properties.RGB_camera == 1 && properties.RGB_camera2gray == 0
+        buffer_VIS = zeros(size(frame_VIS, 1), size(frame_VIS, 2), 3, properties.allocation,'uint8'); % color
     else
         buffer_VIS = 0;
     end
     
-    if properties.IR_camera == 1
+    if properties.NIR_camera == 1 && properties.NIR_camera2gray == 1
+        buffer_NIR = zeros(size(frame_NIR, 1), size(frame_NIR, 2), properties.allocation,'uint8'); % gray
+    elseif properties.NIR_camera == 1 && properties.NIR_camera2gray == 0
+        buffer_NIR = zeros(size(frame_NIR, 1), size(frame_NIR, 2), 3, properties.allocation,'uint8'); % color
+    else
+        buffer_NIR = 0;
+    end
+    
+    if properties.LWIR_camera == 1
         
         res = get_IR_resolution(properties, IRInterface); % getting the IR camera resolution
         properties.IR_resolution = res;
         
-        if properties.tempORcolor == 1
+        if properties.LWIR_tempORcolor == 1
             buffer_IR = zeros(res(1), res(2), properties.allocation,'single'); % temperature
-        elseif properties.tempORcolor == 0
+        elseif properties.LWIR_tempORcolor == 0
             buffer_IR = zeros(res(1), res(2), 3, properties.allocation,'single'); % psaudo-color
         end
         
@@ -205,24 +242,28 @@ else
     properties.play_mode = 1;
 end
 
-if properties.crop_cor ~= 0 & err == 0
-    crop_cor = str2num(properties.crop_cor); % case should crop VIS image
+if ~exist('rgb_crop_cor', 'var') & properties.RGB_crop_cor ~= 0 & err == 0
+    rgb_crop_cor = str2num(properties.RGB_crop_cor); % case should crop VIS image
 end
 
-if properties.VIS_camera == 0 && properties.IR_camera == 0 && err == 0
+if ~exist('nir_crop_cor', 'var') & properties.NIR_crop_cor ~= 0 & err == 0
+    nir_crop_cor = str2num(properties.NIR_crop_cor); % case should crop VIS image
+end
+
+if properties.RGB_camera == 0 && properties.NIR_camera == 0 && properties.LWIR_camera == 0 && err == 0
     err = status(app, 'No camera was selected.', 'r', 1, 1);
 end
 
+if ~exist('IRViewer', 'var')
+   IRViewer = 0; 
+end
+
 if properties.warm_up == 1 && err == 0 % delay recording if needed
-    if properties.VIS_camera == 1
-        err = warm_up(app, properties, cam, vlc);
-    else
-        err = warm_up(app, properties, cam, vlc);
-    end
+    err = warm_up(app, properties, IRViewer, vlc);
     tStart = tic;
 end
 
-if properties.IR_camera == 1 && err == 0
+if properties.LWIR_camera == 1 && err == 0
     IRViewer.trigger_shutter_flag(); % triggers flag (temperature drift reset)
 end
 
@@ -251,35 +292,46 @@ while(viewer_is_running) % main loop
         
     end
     
-    %% Get VIS / IR frame from camera
+    %% Get RGB / NIR / IR frame from camera
     
-    if properties.VIS_camera == 1 % if needs to get frame from VIS camera
+    if properties.RGB_camera == 1 % if needs to get frame from VIS camera
         
-        if properties.gray == 1
-            frame_VIS = rgb2gray(snapshot(cam)); % get imgage from VIS camera if needed and transform to gray
-        else
-            frame_VIS = snapshot(cam); % get imgage from VIS camera if needed
+        frame_VIS = snapshot(rgb_cam); % get imgage from VIS camera if needed
+        if properties.RGB_crop_cor ~= 0
+            frame_VIS = imcrop(frame_VIS, rgb_crop_cor); % cropping the frame
         end
-        if properties.crop_cor ~= 0
-            frame_VIS = imcrop(frame_VIS, crop_cor); % cropping the frame
+        if properties.RGB_camera2gray == 1
+            frame_VIS = rgb2gray(frame_VIS); % get imgage from VIS camera if needed and transform to gray
+        end
+
+    end
+    
+    if properties.NIR_camera == 1 % if needs to get frame from VIS camera
+        
+        frame_NIR = snapshot(nir_cam); % get imgage from NIR camera if needed
+        if properties.NIR_crop_cor ~= 0
+            frame_NIR = imcrop(frame_NIR, nir_crop_cor); % cropping the frame
+        end
+        if properties.NIR_camera2gray == 1
+            frame_NIR = rgb2gray(frame_NIR); % get imgage from VIS camera if needed and transform to gray
         end
         
     end
     
     t(idx) = (round(toc(tStart)*1000)); % saves time delta
     
-    if properties.IR_camera == 1 % if needs to get frame from IR camera
+    if properties.LWIR_camera == 1 % if needs to get frame from IR camera
         
-        if properties.tempORcolor == 1
+        if properties.LWIR_tempORcolor == 1
             THM = single(IRInterface.get_thermal()); % get gray image from IR camera
             frame_IR = ((THM - 10000) ./ 100); % change values to Celsius temperature values
-        elseif properties.tempORcolor == 0
+        elseif properties.LWIR_tempORcolor == 0
             frame_IR = (IRInterface.get_palette()); % get color image from IR camera
         end
         
     end
     
-    %% Store frame in RAM memory
+    %% Store frames in RAM memory
     
     if (properties.save_data == 1 && playFlag == 1) || (properties.save_data == 1 && black_record == 0) % case needs to save recorded frames
         
@@ -288,16 +340,24 @@ while(viewer_is_running) % main loop
         
         try
             
-            if properties.VIS_camera == 1
-                if properties.gray == 1
+            if properties.RGB_camera == 1
+                if properties.RGB_camera2gray == 1
                     buffer_VIS(:,:,buff_idx) = frame_VIS; % storing VIS camera gray image
                 else
                     buffer_VIS(:,:,:,buff_idx) = frame_VIS; % storing VIS camera RGB image
                 end
             end
             
-            if properties.IR_camera == 1
-                if properties.tempORcolor == 1
+            if properties.NIR_camera == 1
+                if properties.NIR_camera2gray == 1
+                    buffer_NIR(:,:,buff_idx) = frame_NIR; % storing VIS camera gray image
+                else
+                    buffer_NIR(:,:,:,buff_idx) = frame_NIR; % storing VIS camera RGB image
+                end
+            end
+            
+            if properties.LWIR_camera == 1
+                if properties.LWIR_tempORcolor == 1
                     buffer_IR(:,:,buff_idx) = frame_IR; % storing IR camera temperature image
                 else
                     buffer_IR(:,:,:,buff_idx) = frame_IR; % storing IR camera color image
@@ -315,20 +375,68 @@ while(viewer_is_running) % main loop
     
     if properties.live_view == 1 % if needs to display live view
         
-        if properties.VIS_camera == 1 && properties.IR_camera == 1
+        if properties.RGB_camera && properties.NIR_camera && properties.LWIR_camera
+            imagesc(subplot(1,3,1),frame_VIS); % draw VIS image
+            if properties.RGB_camera2gray
+                colormap(gray);
+            end
+            imagesc(subplot(1,3,2),frame_NIR); % draw NIR image
+            if properties.NIR_camera2gray
+                colormap(gray);
+            end
+            imagesc(subplot(1,3,3),frame_IR); % draw IR image
+            if properties.LWIR_tempORcolor
+                colormap(gray);
+            end
+        elseif properties.RGB_camera && properties.NIR_camera && properties.LWIR_camera == 0
             imagesc(subplot(1,2,1),frame_VIS); % draw VIS image
+            if properties.RGB_camera2gray
+                colormap(gray);
+            end
+            imagesc(subplot(1,2,2),frame_NIR); % draw NIR image
+            if properties.NIR_camera2gray
+                colormap(gray);
+            end
+        elseif properties.RGB_camera && properties.NIR_camera == 0 && properties.LWIR_camera
+            imagesc(subplot(1,2,1),frame_VIS); % draw VIS image
+            if properties.RGB_camera2gray
+                colormap(gray);
+            end
             imagesc(subplot(1,2,2),frame_IR); colormap(gray);% draw IR image
-        elseif properties.VIS_camera == 0 && properties.IR_camera == 1
+            if properties.LWIR_tempORcolor
+                colormap(gray);
+            end
+        elseif properties.RGB_camera == 0 && properties.NIR_camera && properties.LWIR_camera
+            imagesc(subplot(1,2,1),frame_NIR); % draw NIR image
+            if properties.NIR_camera2gray
+                colormap(gray);
+            end
+            imagesc(subplot(1,2,2),frame_IR); colormap(gray);% draw IR image
+            if properties.LWIR_tempORcolor
+                colormap(gray);
+            end
+        elseif properties.RGB_camera == 0 && properties.NIR_camera == 0 && properties.LWIR_camera == 1
             imagesc(frame_IR); colormap(gray);% draw IR image
-        elseif properties.VIS_camera == 1 && properties.IR_camera == 0
-            imagesc(frame_VIS); colormap(gray);% draw VIS image
+            if properties.LWIR_tempORcolor
+                colormap(gray);
+            end
+        elseif properties.RGB_camera == 0 && properties.NIR_camera && properties.LWIR_camera == 0
+            imagesc(frame_NIR); %colormap(gray);% draw NIR image
+            if properties.NIR_camera2gray
+                colormap(gray);
+            end
+        elseif properties.RGB_camera && properties.NIR_camera == 0 && properties.LWIR_camera == 0
+            imagesc(frame_VIS); %colormap(gray);% draw VIS image
+            if properties.RGB_camera2gray
+                colormap(gray);
+            end
         end
         
     end
     
     drawnow(); % updates image and callbacks
     
-    %% Play videos (VLC)
+    %% Play videos (VLC) [and save buffer!]
     
     if properties.playVideofiles == 1
         
@@ -351,7 +459,7 @@ while(viewer_is_running) % main loop
         if (t(idx) - t(tLast_play) >= properties.pauseTime*1000 && playFlag == 0 &&...
                 videosPlayed < list_length) || (playFlag == 0 && videosPlayed == 0) % checks if it's time to play a video
             
-            if properties.flag_IR_camera_on_black == 1 && properties.IR_camera == 1
+            if properties.flag_IR_camera_on_black == 1 && properties.LWIR_camera == 1
                 IRViewer.trigger_shutter_flag(); % triggers flag (temperature drift reset)
             end
             
@@ -412,7 +520,7 @@ while(viewer_is_running) % main loop
             playFlag = 0; % marks next time to play a video
             tLast_play = idx; % saves the index of the last time found
             
-            %             if properties.flag_IR_camera_on_black == 1 && properties.IR_camera == 1
+            %             if properties.flag_IR_camera_on_black == 1 && properties.LWIR_camera == 1
             %                 IRViewer.trigger_shutter_flag(); % triggers flag (temperature drift reset)
             %             end
             
@@ -427,7 +535,7 @@ while(viewer_is_running) % main loop
                     vlc.play('final_msg.png'); % display last black screen
                 end
                 
-                err = save_buffer(app, properties, filename, playlist, buffer_VIS, buffer_IR, video_idx-1, buff_idx); % update data to mat file
+                err = save_buffer(app, properties, filename, playlist, buffer_VIS, buffer_NIR ,buffer_IR, video_idx-1, buff_idx); % update data to mat file
                 buff_idx = 0;
             end
             
@@ -535,7 +643,7 @@ if properties.save_data == 1 && err ~= 1
     properties.exp_end_time_unix = posixtime(datetime);
     
     err = save_parameters(app, properties, filename, t, timing, playlist); % saves recording parameters
-    err = save_buffer(app, properties, filename, playlist, buffer_VIS, buffer_IR, video_idx, buff_idx); % update data to mat file
+    err = save_buffer(app, properties, filename, playlist, buffer_VIS, buffer_NIR, buffer_IR, video_idx, buff_idx); % update data to mat file
     
     try
         app.Status1.FontColor = [0.29,0.58,0.07]; % dark green
@@ -557,11 +665,11 @@ end
 
 %% Terminate
 try
-    if properties.IR_camera == 1
+    if properties.LWIR_camera == 1
         IRInterface.terminate(); % disconnect from IR camera
     end
-    if properties.VIS_camera == 1
-        clear('cam'); % disconnect from VIS camera
+    if properties.RGB_camera == 1
+        clear('rgb_cam'); % disconnect from VIS camera
     end
     if properties.playVideofiles == 1
         vlc.quit(); % close VLC player
