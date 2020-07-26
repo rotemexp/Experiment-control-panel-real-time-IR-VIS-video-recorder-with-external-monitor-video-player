@@ -223,6 +223,7 @@ timing_idx = 1;
 videosPlayed = 0;
 frameCount = 0;
 tLast_play = 1;
+tLast_flag = 1;
 tLast_display = 1;
 t = uint64(zeros(1));
 t_seg = zeros(2,1);
@@ -456,12 +457,20 @@ while(viewer_is_running) % main loop
             end
         end
         
+        if t(idx) - t(tLast_play) >= (properties.playTime*1000 - 1000) && playFlag == 1 ... % flags LWIR camera 1 sec before new video starts
+                && t(idx) - t(tLast_flag) >= 2000
+        
+            IRViewer.trigger_shutter_flag(); % triggers flag (temperature drift reset)
+            tLast_flag = idx;
+            
+        end
+            
         if (t(idx) - t(tLast_play) >= properties.pauseTime*1000 && playFlag == 0 &&...
                 videosPlayed < list_length) || (playFlag == 0 && videosPlayed == 0) % checks if it's time to play a video
             
-            if properties.flag_IR_camera_on_black == 1 && properties.LWIR_camera == 1
-                IRViewer.trigger_shutter_flag(); % triggers flag (temperature drift reset)
-            end
+%             if properties.flag_IR_camera_on_black == 1 && properties.LWIR_camera == 1
+%                 IRViewer.trigger_shutter_flag(); % triggers flag (temperature drift reset)
+%             end
             
             if properties.popup == 1 % case need to wait for popup feedback
                 
